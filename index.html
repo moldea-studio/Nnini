@@ -134,6 +134,7 @@
             const [showBrandFilter, setShowBrandFilter] = useState(false);
             const [searchTerm, setSearchTerm] = useState('');
             
+            // INICIALIZACIÓN DEL CANDADO CON MEMORIA
             const [isLocked, setIsLocked] = useState(() => {
                 try {
                     return localStorage.getItem('nini_is_locked') === 'true';
@@ -156,7 +157,7 @@
                 return parseFloat(strVal.replace(/\./g, '').replace(',', '.')) || 0;
             };
 
-            // -- INSTALL PROMPT --
+            // -- INSTALL PROMPT LOGIC --
             useEffect(() => {
                 const handler = (e) => {
                     e.preventDefault();
@@ -261,6 +262,8 @@
 
             useEffect(() => { fetchProducts(); }, []);
             useEffect(() => { if(activeTab === 'history') fetchHistory(); }, [activeTab]);
+            
+            // GUARDAR ESTADO
             useEffect(() => { localStorage.setItem('nini_current_list', JSON.stringify(products)); }, [products]);
             useEffect(() => { localStorage.setItem('nini_is_locked', isLocked); }, [isLocked]);
 
@@ -274,7 +277,7 @@
                 const matchBrand = brandFilter === 'Todas' || p.brand === brandFilter;
                 const matchSearch = (p.name||'').toLowerCase().includes(searchTerm.toLowerCase());
                 return matchCat && matchBrand && matchSearch;
-            });
+            }).sort((a, b) => (a.name || '').localeCompare(b.name || ''));
 
             const totalBudget = safeProducts.reduce((acc, p) => acc + (p.price * p.plannedQty), 0);
             const totalSpent = safeProducts.reduce((acc, p) => acc + (p.price * p.actualQty), 0);
@@ -324,7 +327,6 @@
                 <div className="min-h-screen pb-20 font-sans flex flex-col" style={{ backgroundColor: COLORS.bg }}>
                     {/* Header */}
                     <div className="sticky top-0 z-40 bg-white shadow-md border-b border-gray-200">
-                        {/* BANNER BLANCO CON LOGO ZOOMED */}
                         <div className="flex justify-between items-center px-4 py-2 bg-white overflow-hidden">
                             <div className="h-14 w-40 overflow-hidden flex items-center -ml-3">
                                 <img src="https://i.imgur.com/23tlEnQ.jpeg" alt="Nini" className="h-full w-full object-contain scale-[1.8]" />
@@ -336,7 +338,7 @@
                                         <Icons.Download size={14}/> <span>App</span>
                                     </button>
 
-                                    {/* CONTENEDOR TOTALES */}
+                                    {/* CONTENEDOR DE TOTALES */}
                                     <div className="flex items-center bg-gray-50 rounded-lg p-1 px-3 border border-gray-200 shadow-sm">
                                         <div className="flex flex-col items-end mr-3">
                                             <span className="text-[9px] text-gray-500 font-bold uppercase tracking-wider">Plan</span>
@@ -366,10 +368,7 @@
                                             <div className="absolute left-2 top-2"><Icons.Search className="text-gray-400" size={16}/></div>
                                             <input type="text" placeholder="Buscar..." className="w-full pl-8 pr-2 py-1.5 text-sm bg-white border rounded focus:outline-none" onChange={e => setSearchTerm(e.target.value)} />
                                         </div>
-                                        {/* Botón AGREGAR MANUAL */}
-                                        <button onClick={() => setShowAddModal(true)} className="bg-blue-600 text-white w-8 h-8 rounded flex items-center justify-center shadow hover:bg-blue-700 active:scale-95">
-                                            <Icons.Plus size={18} />
-                                        </button>
+                                        <button onClick={() => setShowAddModal(true)} className="bg-blue-600 text-white w-8 h-8 rounded flex items-center justify-center shadow hover:bg-blue-700 active:scale-95"><Icons.Plus size={18} /></button>
                                     </div>
 
                                     <button onClick={() => setShowBrandFilter(!showBrandFilter)} className={`flex items-center justify-center w-8 h-8 rounded border transition-colors ${showBrandFilter ? 'bg-blue-100 text-blue-700' : 'bg-white text-gray-500'}`}><Icons.Filter size={16} /></button>
@@ -416,32 +415,14 @@
                     {showAddModal && (
                         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-4">
                             <div className="bg-white rounded-xl shadow-xl w-full max-w-xs flex flex-col p-4">
-                                <div className="flex justify-between items-center mb-4">
-                                    <h3 className="font-bold text-lg">Agregar Producto</h3>
-                                    <button onClick={() => setShowAddModal(false)}><Icons.X size={20}/></button>
-                                </div>
+                                <div className="flex justify-between items-center mb-4"><h3 className="font-bold text-lg">Agregar Producto</h3><button onClick={() => setShowAddModal(false)}><Icons.X size={20}/></button></div>
                                 <form onSubmit={handleAddItem} className="space-y-3">
-                                    <div>
-                                        <label className="text-xs font-bold text-gray-500">Nombre</label>
-                                        <input name="name" required className="w-full border rounded p-2 text-sm focus:border-blue-500 outline-none" autoFocus />
-                                    </div>
+                                    <div><label className="text-xs font-bold text-gray-500">Nombre</label><input name="name" required className="w-full border rounded p-2 text-sm focus:border-blue-500 outline-none" autoFocus /></div>
                                     <div className="flex gap-2">
-                                        <div className="flex-1">
-                                            <label className="text-xs font-bold text-gray-500">Marca</label>
-                                            <input name="brand" className="w-full border rounded p-2 text-sm focus:border-blue-500 outline-none" placeholder="Opcional" />
-                                        </div>
-                                        <div className="flex-1">
-                                            <label className="text-xs font-bold text-gray-500">Precio</label>
-                                            <input name="price" type="number" className="w-full border rounded p-2 text-sm focus:border-blue-500 outline-none" placeholder="$0" />
-                                        </div>
+                                        <div className="flex-1"><label className="text-xs font-bold text-gray-500">Marca</label><input name="brand" className="w-full border rounded p-2 text-sm focus:border-blue-500 outline-none" placeholder="Opcional" /></div>
+                                        <div className="flex-1"><label className="text-xs font-bold text-gray-500">Precio</label><input name="price" type="number" className="w-full border rounded p-2 text-sm focus:border-blue-500 outline-none" placeholder="$0" /></div>
                                     </div>
-                                    <div>
-                                        <label className="text-xs font-bold text-gray-500">Rubro</label>
-                                        <select name="category" className="w-full border rounded p-2 text-sm bg-white">
-                                            <option value="Varios">Varios</option>
-                                            {dynamicCategories.filter(c=>c!=='Todos').map(c=><option key={c} value={c}>{c}</option>)}
-                                        </select>
-                                    </div>
+                                    <div><label className="text-xs font-bold text-gray-500">Rubro</label><select name="category" className="w-full border rounded p-2 text-sm bg-white"><option value="Varios">Varios</option>{dynamicCategories.filter(c=>c!=='Todos').map(c=><option key={c} value={c}>{c}</option>)}</select></div>
                                     <button type="submit" className="w-full bg-blue-600 text-white font-bold py-3 rounded-lg shadow mt-2">AGREGAR AL CARRITO</button>
                                 </form>
                             </div>
