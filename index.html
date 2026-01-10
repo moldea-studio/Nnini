@@ -8,12 +8,12 @@
     <!-- PWA META TAGS -->
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="theme-color" content="#004aad">
-    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3081/3081559.png">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="theme-color" content="#ffffff">
+    <link rel="apple-touch-icon" href="https://i.imgur.com/23tlEnQ.jpeg">
     
     <!-- MANIFEST EMBEBIDO -->
-    <link rel="manifest" href="data:application/manifest+json;base64,ewogICJuYW1lIjogIk5pbmkgTWF5b3Jpc3RhIiwKICAic2hvcnRfbmFtZSI6ICJOaW5pIEFwcCIsCiAgInN0YXJ0X3VybCI6ICIuIiwKICAiZGlzcGxheSI6ICJzdGFuZGFsb25lIiwKICAiYmFja2dyb3VuZF9jb2xvciI6ICIjZjhmOWZhIiwKICAidGhlbWVfY29sb3IiOiAiIzAwNGFhZCIsCiAgImljb25zIjogWwogICAgewogICAgICAic3JjIjogImh0dHBzOi8vY2RuLWljb25zLXBuZy5mbGF0aWNvbi5jb20vNTEyLzMwODEvMzA4MTU1OS5wbmciLAogICAgICAic2l6ZXMiOiAiMTkyeDE5MiIsCiAgICAgICJ0eXBlIjogImltYWdlL3BuZyIKICAgIH0KICBdCn0=">
+    <link rel="manifest" href="data:application/manifest+json;base64,ewogICJuYW1lIjogIk5pbmkgTWF5b3Jpc3RhIiwKICAic2hvcnRfbmFtZSI6ICJOaW5pIEFwcCIsCiAgInN0YXJ0X3VybCI6ICIuIiwKICAiZGlzcGxheSI6ICJzdGFuZGFsb25lIiwKICAiYmFja2dyb3VuZF9jb2xvciI6ICIjZmZmZmZmIiwKICAidGhlbWVfY29sb3IiOiAiI2ZmZmZmZiIsCiAgImljb25zIjogWwogICAgewogICAgICAic3JjIjogImh0dHBzOi8vaS5pbWd1ci5jb20vMjN0bEVuUS5qcGVnIiwKICAgICAgInNpemVzIjogIjE5MngxOTIiLAogICAgICAidHlwZSI6ICJpbWFnZS9qcGVnIgogICAgfSwKICAgIHsKICAgICAgInNyYyI6ICJodHRwczovL2kuaW1ndXIuY29tLzIzdGxFblEuanBlZyIsCiAgICAgICJzaXplcyI6ICI1MTJ4NTEyIiwKICAgICAgInR5cGUiOiAiaW1hZ2UvanBlZyIKICAgIH0KICBdCn0=">
 
     <!-- 1. ESTILOS (Tailwind CSS) -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -133,12 +133,14 @@
             const [brandFilter, setBrandFilter] = useState('Todas');
             const [showBrandFilter, setShowBrandFilter] = useState(false);
             const [searchTerm, setSearchTerm] = useState('');
+            
             // INICIALIZACIÓN DEL CANDADO CON MEMORIA
             const [isLocked, setIsLocked] = useState(() => {
                 try {
                     return localStorage.getItem('nini_is_locked') === 'true';
                 } catch(e) { return false; }
             });
+
             const [showExportModal, setShowExportModal] = useState(false);
             const [exportContent, setExportContent] = useState('');
             const [showInstallModal, setShowInstallModal] = useState(false);
@@ -260,10 +262,8 @@
             useEffect(() => { fetchProducts(); }, []);
             useEffect(() => { if(activeTab === 'history') fetchHistory(); }, [activeTab]);
             
-            // GUARDAR ESTADO PRODUCTOS
+            // GUARDAR ESTADO
             useEffect(() => { localStorage.setItem('nini_current_list', JSON.stringify(products)); }, [products]);
-            
-            // GUARDAR ESTADO CANDADO (NUEVO)
             useEffect(() => { localStorage.setItem('nini_is_locked', isLocked); }, [isLocked]);
 
             // -- COMPUTED --
@@ -308,44 +308,42 @@
                 <div className="min-h-screen pb-20 font-sans flex flex-col" style={{ backgroundColor: COLORS.bg }}>
                     {/* Header */}
                     <div className="sticky top-0 z-40 bg-white shadow-md border-b border-gray-200">
-                        <div className="flex justify-between items-center px-4 py-3" style={{ background: `linear-gradient(135deg, ${COLORS.blue} 0%, #002a60 100%)` }}>
-                            <div className="flex flex-col leading-none select-none">
-                                <div className="font-black text-2xl tracking-tighter flex items-baseline select-none">
-                                    <span className="text-white">n</span><span style={{color: COLORS.red}}>i</span>
-                                    <span className="text-white">n</span><span style={{color: COLORS.red}}>i</span>
-                                </div>
-                                <span className="text-[9px] font-bold uppercase tracking-widest -mt-1 text-blue-200">mayorista</span>
+                        {/* BANNER BLANCO CON LOGO ZOOMED */}
+                        <div className="flex justify-between items-center px-4 py-2 bg-white overflow-hidden">
+                            {/* Logo Wrapper para Crop */}
+                            <div className="h-14 w-40 overflow-hidden flex items-center -ml-3">
+                                <img src="https://i.imgur.com/23tlEnQ.jpeg" alt="Nini" className="h-full w-full object-contain scale-[1.8]" />
                             </div>
                             
                             {activeTab === 'list' && (
-                                <div className="flex gap-2 text-right items-center text-white">
+                                <div className="flex items-center gap-2">
                                     <button 
                                         onClick={handleInstallClick} 
-                                        className="bg-white/20 text-white text-[10px] font-bold px-2 py-1.5 rounded flex items-center gap-1 hover:bg-white/30 transition shadow-sm border border-white/10"
+                                        className="bg-gray-100 text-blue-600 text-[10px] font-bold px-3 py-1.5 rounded-full flex items-center gap-1 hover:bg-gray-200 transition shadow-sm border border-gray-200"
                                         title="Instalar App"
                                     >
-                                        <Icons.Download size={12}/> <span>App</span>
+                                        <Icons.Download size={14}/> <span>App</span>
                                     </button>
 
-                                    {/* CONTENEDOR DE TOTALES */}
-                                    <div className="flex items-center bg-black/20 rounded-lg p-1 px-2 border border-white/10">
-                                        <div className="flex flex-col items-end mr-2">
-                                            <span className="text-[8px] text-blue-200 font-bold uppercase tracking-wider">Plan</span>
-                                            <span className="text-xs font-medium text-white">${totalBudget}</span>
+                                    {/* CONTENEDOR DE TOTALES PRO */}
+                                    <div className="flex items-center bg-gray-50 rounded-lg p-1 px-3 border border-gray-200 shadow-sm">
+                                        <div className="flex flex-col items-end mr-3">
+                                            <span className="text-[9px] text-gray-500 font-bold uppercase tracking-wider">Plan</span>
+                                            <span className="text-sm font-medium text-gray-700">${totalBudget}</span>
                                         </div>
-                                        <div className="w-px h-5 bg-white/20"></div>
-                                        <div className="flex flex-col items-end ml-2">
-                                            <span className="text-[8px] text-green-300 font-bold uppercase tracking-wider">Carrito</span>
-                                            <span className="text-sm font-bold text-white">${totalSpent}</span>
+                                        <div className="w-px h-6 bg-gray-300"></div>
+                                        <div className="flex flex-col items-end ml-3">
+                                            <span className="text-[10px] text-blue-600 font-black uppercase tracking-wider">Carrito</span>
+                                            <span className="text-2xl font-black text-blue-900 leading-none">${totalSpent}</span>
                                         </div>
                                     </div>
 
-                                    <button onClick={handleFinish} className="bg-white text-blue-900 p-2 rounded-full shadow-lg active:scale-95 hover:bg-blue-50 transition-all">
+                                    <button onClick={handleFinish} className="bg-blue-600 text-white p-2 rounded-full shadow-lg active:scale-95 hover:bg-blue-700 transition-all">
                                         <Icons.Save size={18}/>
                                     </button>
                                 </div>
                             )}
-                            {activeTab === 'history' && <div className="text-xs font-bold text-blue-200 flex items-center gap-1 bg-white/10 px-2 py-1 rounded"><Icons.Database size={12}/> Conectado</div>}
+                            {activeTab === 'history' && <div className="text-xs font-bold text-green-600 flex items-center gap-1 bg-green-50 px-2 py-1 rounded border border-green-100"><Icons.Database size={12}/> Conectado</div>}
                         </div>
 
                         {/* Filtros */}
@@ -370,20 +368,20 @@
                         {activeTab === 'list' ? (
                             <div className="w-full pb-8">
                                 {filteredProducts.map(p => (
-                                    <div key={p.id} className={`flex items-center px-3 py-2 border-b transition-colors ${p.actualQty >= p.plannedQty && p.plannedQty > 0 ? 'bg-green-50/60' : 'bg-white'}`}>
+                                    <div key={p.id} className={`flex items-center px-4 py-4 border-b transition-colors ${p.actualQty >= p.plannedQty && p.plannedQty > 0 ? 'bg-green-50/60' : 'bg-white'}`}>
                                         <div className="flex-1 min-w-0 pr-2">
-                                            <div className="flex flex-col"><span className="text-sm font-bold truncate">{p.name}</span><span className="text-[10px] text-gray-500 truncate font-semibold">{p.brand}</span></div>
-                                            <div className="flex items-center gap-1 mt-0.5"><span className="text-xs text-gray-400">$</span><input type="number" className="text-xs font-medium text-gray-600 w-16 bg-transparent border-b focus:outline-none" value={p.price} onChange={e => { const val = Number(e.target.value); setProducts(prev => prev.map(i => i.id === p.id ? { ...i, price: val } : i)); }} /></div>
+                                            <div className="flex flex-col"><span className="text-lg font-bold truncate text-gray-800">{p.name}</span><span className="text-xs text-gray-500 truncate font-semibold">{p.brand}</span></div>
+                                            <div className="flex items-center gap-1 mt-1"><span className="text-sm text-gray-400">$</span><input type="number" className="text-base font-bold text-gray-700 w-20 bg-transparent border-b border-dashed border-gray-300 focus:outline-none focus:border-blue-500" value={p.price} onChange={e => { const val = Number(e.target.value); setProducts(prev => prev.map(i => i.id === p.id ? { ...i, price: val } : i)); }} /></div>
                                         </div>
-                                        <div className={`w-16 flex items-center justify-center border-x px-1 ${isLocked ? 'opacity-50' : ''}`}>
-                                            {!isLocked && <button onClick={() => handleQty(p.id, -1, 'plannedQty')} className="px-1 text-gray-400"><Icons.Minus size={10}/></button>}
-                                            <span className="text-sm font-bold w-full text-center">{p.plannedQty}</span>
-                                            {!isLocked && <button onClick={() => handleQty(p.id, 1, 'plannedQty')} className="px-1 text-gray-400"><Icons.Plus size={10}/></button>}
+                                        <div className={`w-16 flex items-center justify-center border-x border-gray-100 px-1 ${isLocked ? 'opacity-50' : ''}`}>
+                                            {!isLocked && <button onClick={() => handleQty(p.id, -1, 'plannedQty')} className="px-1 text-gray-400 active:text-red-500"><Icons.Minus size={12}/></button>}
+                                            <span className="text-base font-bold w-full text-center text-gray-600">{p.plannedQty}</span>
+                                            {!isLocked && <button onClick={() => handleQty(p.id, 1, 'plannedQty')} className="px-1 text-gray-400 active:text-blue-500"><Icons.Plus size={12}/></button>}
                                         </div>
-                                        <div className="w-24 flex items-center justify-between pl-2">
-                                            <button onClick={() => handleQty(p.id, -1, 'actualQty')} className="w-7 h-7 flex items-center justify-center bg-white border rounded active:bg-gray-100"><Icons.Minus size={14}/></button>
-                                            <span className={`text-lg font-bold ${p.actualQty >= p.plannedQty && p.plannedQty > 0 ? 'text-green-600' : 'text-blue-900'}`}>{p.actualQty}</span>
-                                            <button onClick={() => handleQty(p.id, 1, 'actualQty')} className="w-7 h-7 flex items-center justify-center bg-blue-600 text-white rounded active:scale-95"><Icons.Plus size={14}/></button>
+                                        <div className="w-28 flex items-center justify-between pl-3">
+                                            <button onClick={() => handleQty(p.id, -1, 'actualQty')} className="w-10 h-10 flex items-center justify-center bg-white border border-gray-300 rounded-lg shadow-sm active:bg-gray-100 text-gray-600"><Icons.Minus size={18}/></button>
+                                            <span className={`text-xl font-bold ${p.actualQty >= p.plannedQty && p.plannedQty > 0 ? 'text-green-600' : 'text-blue-900'}`}>{p.actualQty}</span>
+                                            <button onClick={() => handleQty(p.id, 1, 'actualQty')} className="w-10 h-10 flex items-center justify-center bg-blue-600 text-white rounded-lg shadow-md active:scale-95"><Icons.Plus size={18}/></button>
                                         </div>
                                     </div>
                                 ))}
@@ -555,3 +553,5 @@
     </script>
 </body>
 </html>
+
+
