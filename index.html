@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, Component } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { ShoppingCart, Trash2, Plus, Minus, Search, Lock, Unlock, Filter, Copy, Save, PieChart, List, Upload, Settings, RefreshCw, X, Check, ExternalLink, Database, AlertTriangle, ChevronDown, ChevronUp } from 'lucide-react';
 
 // --- CONFIGURACIÓN ---
@@ -21,8 +21,10 @@ const INITIAL_PRODUCTS = [
   { id: 'init_1', name: 'Cargando lista...', brand: '...', category: 'General', price: 0, plannedQty: 0, actualQty: 0 },
 ];
 
+const CATEGORIES = ['Todos', 'Almacén', 'Bebidas', 'Limpieza', 'Galletitas', 'Perfumería', 'Frescos'];
+
 // --- ERROR BOUNDARY (ESCUDO DE PROTECCIÓN) ---
-class ErrorBoundary extends Component {
+class ErrorBoundary extends React.Component<{children: React.ReactNode}, {hasError: boolean, error: Error | null}> {
   constructor(props) {
     super(props);
     this.state = { hasError: false, error: null };
@@ -33,27 +35,27 @@ class ErrorBoundary extends Component {
   }
 
   componentDidCatch(error, errorInfo) {
-    console.error("Error capturado por el escudo:", error, errorInfo);
+    console.error("Error capturado:", error, errorInfo);
   }
 
   render() {
     if (this.state.hasError) {
       return (
-        <div className="p-6 text-center">
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
-            <h2 className="text-red-700 font-bold mb-2">¡Ups! Algo salió mal.</h2>
-            <p className="text-xs text-red-600 font-mono mb-4">{this.state.error?.toString()}</p>
+        <div className="p-6 text-center flex flex-col items-center justify-center h-screen bg-gray-50">
+          <div className="bg-white border border-red-200 rounded-xl p-6 shadow-xl max-w-sm">
+            <AlertTriangle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+            <h2 className="text-red-700 font-bold mb-2 text-lg">Algo salió mal</h2>
+            <p className="text-xs text-gray-600 mb-6">La aplicación encontró un error inesperado al procesar los datos.</p>
             <button 
                 onClick={() => {
                     localStorage.removeItem('nini_current_list');
                     window.location.reload();
                 }}
-                className="bg-red-600 text-white px-4 py-2 rounded-lg font-bold shadow-lg active:scale-95"
+                className="w-full bg-red-600 text-white px-4 py-3 rounded-lg font-bold shadow hover:bg-red-700 transition-colors"
             >
-                REINICIAR APP DE CERO
+                REINICIAR APLICACIÓN
             </button>
           </div>
-          <p className="text-xs text-gray-500">Se han borrado los datos temporales para intentar recuperar el sistema.</p>
         </div>
       );
     }
@@ -61,17 +63,29 @@ class ErrorBoundary extends Component {
   }
 }
 
-// --- APP PRINCIPAL ---
+// --- CONTENIDO DE LA APP ---
 function NiniAppContent() {
   const [activeTab, setActiveTab] = useState('list'); 
   
-  // 1. Inicializar con datos seguros SIEMPRE
-  const [products, setProducts] = useState(INITIAL_PRODUCTS);
+  // Inicialización Segura
+  const [products, setProducts] = useState(() => {
+    try {
+      const saved = localStorage.getItem('nini_current_list');
+      if (saved && saved !== "undefined") {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch (e) { 
+        console.warn("Cache corrupto");
+    }
+    return INITIAL_PRODUCTS;
+  });
+
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(false);
   const [statusMsg, setStatusMsg] = useState('');
   
-  // UI States
+  // UI
   const [filter, setFilter] = useState('Todos'); 
   const [brandFilter, setBrandFilter] = useState('Todas');
   const [showBrandFilter, setShowBrandFilter] = useState(false);
@@ -80,20 +94,8 @@ function NiniAppContent() {
   const [showExportModal, setShowExportModal] = useState(false);
   const [exportContent, setExportContent] = useState('');
 
-  // 2. Cargar LocalStorage y Sheet DESPUÉS del primer render (Efecto Seguro)
+  // --- EFECTOS ---
   useEffect(() => {
-      // Cargar LocalStorage
-      try {
-          const saved = localStorage.getItem('nini_current_list');
-          if (saved) {
-              const parsed = JSON.parse(saved);
-              if (Array.isArray(parsed) && parsed.length > 0) {
-                  setProducts(parsed);
-              }
-          }
-      } catch (e) { console.warn("Error leyendo memoria, usando default"); }
-
-      // Cargar Sheet
       fetchProductsFromSheet(LINK_HOJA_PRODUCTOS_URL);
   }, []);
 
@@ -103,9 +105,8 @@ function NiniAppContent() {
       }
   }, [activeTab]);
 
-  // Guardado automático
   useEffect(() => {
-      if (products !== INITIAL_PRODUCTS && Array.isArray(products)) {
+      if (Array.isArray(products) && products.length > 0) {
           localStorage.setItem('nini_current_list', JSON.stringify(products));
       }
   }, [products]);
@@ -117,7 +118,7 @@ function NiniAppContent() {
   };
 
   const parseNumberAR = (str) => {
-      if (!str) return 0;
+      if (str === undefined || str === null) return 0;
       if (typeof str === 'number') return str;
       try {
           const strVal = String(str);
@@ -130,7 +131,7 @@ function NiniAppContent() {
 
   // --- FETCHERS ---
   const fetchProductsFromSheet = async (url) => {
-      setStatusMsg('Actualizando...');
+      if (products.length <= 1) setStatusMsg('Conectando...');
       try {
           const res = await fetch(url);
           if (!res.ok) throw new Error("Error red");
@@ -149,7 +150,6 @@ function NiniAppContent() {
               const name = cols[1];
               if (!name || name === 'Sin Nombre') return;
 
-              // Recuperar cantidades locales
               const existing = products.find(p => p.id === id || p.name === name);
               
               newProds.push({
@@ -165,7 +165,6 @@ function NiniAppContent() {
 
           if (newProds.length > 0) {
               setProducts(prev => {
-                  // Fusionar inteligente para no perder cantidades si el fetch tarda
                   const merged = newProds.map(np => {
                       const local = prev.find(p => p.id === np.id || p.name === np.name);
                       if (local) {
@@ -175,7 +174,7 @@ function NiniAppContent() {
                   });
                   return merged;
               });
-              setStatusMsg('¡Listo!');
+              setStatusMsg('¡Lista actualizada!');
               setTimeout(() => setStatusMsg(''), 2000);
           }
       } catch (e) {
@@ -227,7 +226,6 @@ function NiniAppContent() {
                           const fullYear = y.length === 2 ? `20${y}` : y;
                           const mm = m.padStart(2, '0');
                           const dd = d.padStart(2, '0');
-                          // ISO String for sorting
                           const dateObj = new Date(`${fullYear}-${mm}-${dd}T12:00:00`);
                           if (!isNaN(dateObj.getTime())) isoDate = dateObj.toISOString();
                       }
@@ -254,6 +252,7 @@ function NiniAppContent() {
   const safeProducts = Array.isArray(products) ? products : INITIAL_PRODUCTS;
 
   const dynamicCategories = useMemo(() => {
+      if (!safeProducts.length) return ['Todos'];
       const cats = new Set(safeProducts.map(p => p.category || 'Varios'));
       return ['Todos', ...Array.from(cats).sort()];
   }, [safeProducts]);
@@ -274,7 +273,10 @@ function NiniAppContent() {
 
   const handleQty = (id, delta, field) => {
       if (field === 'plannedQty' && isLocked) return;
-      setProducts(prev => prev.map(p => p.id === id ? { ...p, [field]: Math.max(0, p[field] + delta) } : p));
+      setProducts(prev => prev.map(p => {
+          if (p.id === id) return { ...p, [field]: Math.max(0, p[field] + delta) };
+          return p;
+      }));
   };
 
   const handleFinish = () => {
@@ -294,7 +296,7 @@ function NiniAppContent() {
       if (el) {
           el.select();
           document.execCommand('copy');
-          alert("¡Copiado! Pega en la primera celda vacía de la Columna A del Sheet.");
+          alert("¡Copiado! Pega en el Excel.");
       }
   };
 
@@ -372,7 +374,7 @@ function NiniAppContent() {
                             </div>
                         </div>
                     ))}
-                    {filteredProducts.length === 0 && <div className="text-center py-8 text-gray-400">Sin productos. Revisa tu Sheet.</div>}
+                    {filteredProducts.length === 0 && <div className="text-center py-8 text-gray-400">Sin productos.</div>}
                 </div>
             ) : (
                 <HistoryViewSafe history={history} loading={loading} />
@@ -411,16 +413,17 @@ function HistoryViewSafe({ history, loading }) {
     const [filterDate, setFilterDate] = useState('all');
     const [expandedId, setExpandedId] = useState(null);
 
-    // Calculos Seguros (Memo)
     const availableMonths = useMemo(() => {
         const uniqueMonths = new Set();
         history.forEach(h => {
-            const d = new Date(h.date);
-            if (!isNaN(d.getTime())) {
-                const value = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-                const label = d.toLocaleString('es-AR', { month: 'long', year: 'numeric' });
-                uniqueMonths.add(JSON.stringify({ value, label: label.charAt(0).toUpperCase() + label.slice(1) }));
-            }
+            try {
+                const d = new Date(h.date);
+                if (!isNaN(d.getTime())) {
+                    const value = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+                    const label = d.toLocaleString('es-AR', { month: 'long', year: 'numeric' });
+                    uniqueMonths.add(JSON.stringify({ value, label: label.charAt(0).toUpperCase() + label.slice(1) }));
+                }
+            } catch(e) {}
         });
         return Array.from(uniqueMonths).map(s => JSON.parse(s)).sort((a,b) => b.value.localeCompare(a.value));
     }, [history]);
@@ -534,11 +537,11 @@ function HistoryViewSafe({ history, loading }) {
     );
 }
 
-// Wrapper para el ErrorBoundary
-export function AppWrapper() {
+// Wrapper Principal
+export default function App() {
   return (
     <ErrorBoundary>
-      <NiniAppFull />
+      <NiniAppContent />
     </ErrorBoundary>
   );
 }
