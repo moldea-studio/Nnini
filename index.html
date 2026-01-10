@@ -133,7 +133,12 @@
             const [brandFilter, setBrandFilter] = useState('Todas');
             const [showBrandFilter, setShowBrandFilter] = useState(false);
             const [searchTerm, setSearchTerm] = useState('');
-            const [isLocked, setIsLocked] = useState(false);
+            // INICIALIZACIÓN DEL CANDADO CON MEMORIA
+            const [isLocked, setIsLocked] = useState(() => {
+                try {
+                    return localStorage.getItem('nini_is_locked') === 'true';
+                } catch(e) { return false; }
+            });
             const [showExportModal, setShowExportModal] = useState(false);
             const [exportContent, setExportContent] = useState('');
             const [showInstallModal, setShowInstallModal] = useState(false);
@@ -254,7 +259,12 @@
 
             useEffect(() => { fetchProducts(); }, []);
             useEffect(() => { if(activeTab === 'history') fetchHistory(); }, [activeTab]);
+            
+            // GUARDAR ESTADO PRODUCTOS
             useEffect(() => { localStorage.setItem('nini_current_list', JSON.stringify(products)); }, [products]);
+            
+            // GUARDAR ESTADO CANDADO (NUEVO)
+            useEffect(() => { localStorage.setItem('nini_is_locked', isLocked); }, [isLocked]);
 
             // -- COMPUTED --
             const safeProducts = Array.isArray(products) ? products : INITIAL_PRODUCTS;
@@ -308,10 +318,11 @@
                             </div>
                             
                             {activeTab === 'list' && (
-                                <div className="flex items-center gap-2">
+                                <div className="flex gap-2 text-right items-center text-white">
                                     <button 
                                         onClick={handleInstallClick} 
                                         className="bg-white/20 text-white text-[10px] font-bold px-2 py-1.5 rounded flex items-center gap-1 hover:bg-white/30 transition shadow-sm border border-white/10"
+                                        title="Instalar App"
                                     >
                                         <Icons.Download size={12}/> <span>App</span>
                                     </button>
