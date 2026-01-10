@@ -353,10 +353,9 @@
             const [filterDate, setFilterDate] = useState('all');
             const [expandedId, setExpandedId] = useState(null);
 
-            if (loading) return <div className="flex flex-col items-center justify-center h-[60vh] text-blue-500">Cargando...</div>;
-            if (!history || history.length === 0) return <div className="flex flex-col items-center justify-center h-[60vh] text-gray-400">Sin datos</div>;
-
+            // HOOKS FIRST (ORDER MATTERS)
             const availableMonths = useMemo(() => {
+                if(!history) return [];
                 const unique = new Set();
                 history.forEach(h => {
                     const d = new Date(h.date);
@@ -366,6 +365,7 @@
             }, [history]);
 
             const pieData = useMemo(() => {
+                if(!history) return [];
                 const source = filterDate === 'all' ? history : history.filter(h => h.date.startsWith(filterDate));
                 const catMap = {}; let total = 0;
                 source.forEach(h => {
@@ -379,10 +379,15 @@
             }, [history, filterDate]);
 
             const monthlyData = useMemo(() => {
+                if(!history) return [];
                 const months = Array.from({length: 12}, (_, i) => ({ label: new Date(2024, i, 1).toLocaleString('es-AR', { month: 'short' }).toUpperCase(), total: 0 }));
                 history.forEach(h => { const d = new Date(h.date); if(!isNaN(d)) months[d.getMonth()].total += h.total; });
                 return months;
             }, [history]);
+
+            // CONDITIONAL RETURNS AFTER HOOKS
+            if (loading) return <div className="flex flex-col items-center justify-center h-[60vh] text-blue-500">Cargando...</div>;
+            if (!history || history.length === 0) return <div className="flex flex-col items-center justify-center h-[60vh] text-gray-400">Sin datos</div>;
 
             const maxMonthly = Math.max(...monthlyData.map(d => d.total), 1);
             const pieGradient = pieData.length > 0 ? pieData.reduce((acc, cat, idx) => {
