@@ -134,7 +134,6 @@
             const [showBrandFilter, setShowBrandFilter] = useState(false);
             const [searchTerm, setSearchTerm] = useState('');
             
-            // INICIALIZACIÓN DEL CANDADO CON MEMORIA
             const [isLocked, setIsLocked] = useState(() => {
                 try {
                     return localStorage.getItem('nini_is_locked') === 'true';
@@ -144,6 +143,7 @@
             const [showExportModal, setShowExportModal] = useState(false);
             const [exportContent, setExportContent] = useState('');
             const [showInstallModal, setShowInstallModal] = useState(false);
+            const [showAddModal, setShowAddModal] = useState(false);
             const [deferredPrompt, setDeferredPrompt] = useState(null);
 
             // -- UTILS --
@@ -156,7 +156,7 @@
                 return parseFloat(strVal.replace(/\./g, '').replace(',', '.')) || 0;
             };
 
-            // -- INSTALL PROMPT LOGIC --
+            // -- INSTALL PROMPT --
             useEffect(() => {
                 const handler = (e) => {
                     e.preventDefault();
@@ -261,8 +261,6 @@
 
             useEffect(() => { fetchProducts(); }, []);
             useEffect(() => { if(activeTab === 'history') fetchHistory(); }, [activeTab]);
-            
-            // GUARDAR ESTADO
             useEffect(() => { localStorage.setItem('nini_current_list', JSON.stringify(products)); }, [products]);
             useEffect(() => { localStorage.setItem('nini_is_locked', isLocked); }, [isLocked]);
 
@@ -297,6 +295,24 @@
                 setShowExportModal(true);
             };
 
+            const handleAddItem = (e) => {
+                e.preventDefault();
+                const formData = new FormData(e.target);
+                const newItem = {
+                    id: `manual_${Date.now()}`,
+                    name: formData.get('name'),
+                    brand: formData.get('brand') || 'Generico',
+                    category: formData.get('category') || 'Varios',
+                    price: parseNumberAR(formData.get('price')),
+                    plannedQty: 0,
+                    actualQty: 1 // Agregado directo al carrito
+                };
+                setProducts(prev => [newItem, ...prev]);
+                setShowAddModal(false);
+                setStatusMsg('Producto agregado');
+                setTimeout(() => setStatusMsg(''), 2000);
+            };
+
             const copyToClip = () => {
                 document.getElementById('exportarea').select();
                 document.execCommand('copy');
@@ -310,22 +326,17 @@
                     <div className="sticky top-0 z-40 bg-white shadow-md border-b border-gray-200">
                         {/* BANNER BLANCO CON LOGO ZOOMED */}
                         <div className="flex justify-between items-center px-4 py-2 bg-white overflow-hidden">
-                            {/* Logo Wrapper para Crop */}
                             <div className="h-14 w-40 overflow-hidden flex items-center -ml-3">
                                 <img src="https://i.imgur.com/23tlEnQ.jpeg" alt="Nini" className="h-full w-full object-contain scale-[1.8]" />
                             </div>
                             
                             {activeTab === 'list' && (
                                 <div className="flex items-center gap-2">
-                                    <button 
-                                        onClick={handleInstallClick} 
-                                        className="bg-gray-100 text-blue-600 text-[10px] font-bold px-3 py-1.5 rounded-full flex items-center gap-1 hover:bg-gray-200 transition shadow-sm border border-gray-200"
-                                        title="Instalar App"
-                                    >
+                                    <button onClick={handleInstallClick} className="bg-gray-100 text-blue-600 text-[10px] font-bold px-3 py-1.5 rounded-full flex items-center gap-1 hover:bg-gray-200 transition shadow-sm border border-gray-200" title="Instalar App">
                                         <Icons.Download size={14}/> <span>App</span>
                                     </button>
 
-                                    {/* CONTENEDOR DE TOTALES PRO */}
+                                    {/* CONTENEDOR TOTALES */}
                                     <div className="flex items-center bg-gray-50 rounded-lg p-1 px-3 border border-gray-200 shadow-sm">
                                         <div className="flex flex-col items-end mr-3">
                                             <span className="text-[9px] text-gray-500 font-bold uppercase tracking-wider">Plan</span>
@@ -338,9 +349,7 @@
                                         </div>
                                     </div>
 
-                                    <button onClick={handleFinish} className="bg-blue-600 text-white p-2 rounded-full shadow-lg active:scale-95 hover:bg-blue-700 transition-all">
-                                        <Icons.Save size={18}/>
-                                    </button>
+                                    <button onClick={handleFinish} className="bg-blue-600 text-white p-2 rounded-full shadow-lg active:scale-95 hover:bg-blue-700 transition-all"><Icons.Save size={18}/></button>
                                 </div>
                             )}
                             {activeTab === 'history' && <div className="text-xs font-bold text-green-600 flex items-center gap-1 bg-green-50 px-2 py-1 rounded border border-green-100"><Icons.Database size={12}/> Conectado</div>}
@@ -351,13 +360,24 @@
                             <div className="flex flex-col bg-gray-50 border-t border-gray-100">
                                 <div className="flex items-center gap-2 px-3 py-2">
                                     <button onClick={() => setIsLocked(!isLocked)} className={`flex items-center justify-center w-8 h-8 rounded text-xs font-bold ${isLocked ? 'bg-orange-100 text-orange-700' : 'bg-white text-green-700 border'}`}>{isLocked ? <Icons.Lock size={16} /> : <Icons.Unlock size={16} />}</button>
-                                    <div className="relative flex-1"><div className="absolute left-2 top-2"><Icons.Search className="text-gray-400" size={16}/></div><input type="text" placeholder="Buscar..." className="w-full pl-8 pr-2 py-1.5 text-sm bg-white border rounded focus:outline-none" onChange={e => setSearchTerm(e.target.value)} /></div>
+                                    
+                                    <div className="relative flex-1 flex gap-2">
+                                        <div className="relative flex-1">
+                                            <div className="absolute left-2 top-2"><Icons.Search className="text-gray-400" size={16}/></div>
+                                            <input type="text" placeholder="Buscar..." className="w-full pl-8 pr-2 py-1.5 text-sm bg-white border rounded focus:outline-none" onChange={e => setSearchTerm(e.target.value)} />
+                                        </div>
+                                        {/* Botón AGREGAR MANUAL */}
+                                        <button onClick={() => setShowAddModal(true)} className="bg-blue-600 text-white w-8 h-8 rounded flex items-center justify-center shadow hover:bg-blue-700 active:scale-95">
+                                            <Icons.Plus size={18} />
+                                        </button>
+                                    </div>
+
                                     <button onClick={() => setShowBrandFilter(!showBrandFilter)} className={`flex items-center justify-center w-8 h-8 rounded border transition-colors ${showBrandFilter ? 'bg-blue-100 text-blue-700' : 'bg-white text-gray-500'}`}><Icons.Filter size={16} /></button>
                                     <button onClick={() => setProducts(prev => prev.map(p=>({...p, actualQty:0})))} className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-red-500"><Icons.Trash2 size={16}/></button>
                                 </div>
                                 {showBrandFilter && <div className="px-3 py-2 bg-blue-50 border-b"><div className="text-[10px] font-bold text-blue-800 mb-1 uppercase">Marca</div><select value={brandFilter} onChange={(e) => setBrandFilter(e.target.value)} className="w-full p-2 text-sm border rounded"><option value="Todas">Todas</option>{availableBrands.map(b => <option key={b} value={b}>{b}</option>)}</select></div>}
                                 <div className="overflow-x-auto whitespace-nowrap px-3 py-1 bg-white border-b no-scrollbar">{dynamicCategories.map(cat => (<button key={cat} onClick={() => setFilter(cat)} className={`text-[11px] font-bold px-3 py-1 rounded-full mr-1 transition-colors ${filter === cat ? 'bg-blue-600 text-white' : 'text-gray-500 hover:bg-gray-100'}`}>{cat}</button>))}</div>
-                                <div className="flex text-[10px] text-gray-400 font-bold px-3 py-1 bg-gray-50 border-b uppercase tracking-wider shadow-sm"><div className="flex-1">Producto</div><div className="w-16 text-center">Plan</div><div className="w-24 text-center">Carrito</div></div>
+                                <div className="flex text-[10px] text-gray-400 font-bold px-3 py-1 bg-gray-50 border-b uppercase tracking-wider shadow-sm"><div className="flex-1">Producto</div><div className="w-16 text-center">Plan</div><div className="w-28 text-center">Carrito</div></div>
                             </div>
                         )}
                         {statusMsg && <div className="bg-blue-600 text-white text-[10px] py-1 px-3 text-center font-bold">{statusMsg}</div>}
@@ -391,6 +411,42 @@
                             <HistoryView history={history} loading={loading} />
                         )}
                     </div>
+
+                    {/* Modal AGREGAR MANUAL */}
+                    {showAddModal && (
+                        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-4">
+                            <div className="bg-white rounded-xl shadow-xl w-full max-w-xs flex flex-col p-4">
+                                <div className="flex justify-between items-center mb-4">
+                                    <h3 className="font-bold text-lg">Agregar Producto</h3>
+                                    <button onClick={() => setShowAddModal(false)}><Icons.X size={20}/></button>
+                                </div>
+                                <form onSubmit={handleAddItem} className="space-y-3">
+                                    <div>
+                                        <label className="text-xs font-bold text-gray-500">Nombre</label>
+                                        <input name="name" required className="w-full border rounded p-2 text-sm focus:border-blue-500 outline-none" autoFocus />
+                                    </div>
+                                    <div className="flex gap-2">
+                                        <div className="flex-1">
+                                            <label className="text-xs font-bold text-gray-500">Marca</label>
+                                            <input name="brand" className="w-full border rounded p-2 text-sm focus:border-blue-500 outline-none" placeholder="Opcional" />
+                                        </div>
+                                        <div className="flex-1">
+                                            <label className="text-xs font-bold text-gray-500">Precio</label>
+                                            <input name="price" type="number" className="w-full border rounded p-2 text-sm focus:border-blue-500 outline-none" placeholder="$0" />
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label className="text-xs font-bold text-gray-500">Rubro</label>
+                                        <select name="category" className="w-full border rounded p-2 text-sm bg-white">
+                                            <option value="Varios">Varios</option>
+                                            {dynamicCategories.filter(c=>c!=='Todos').map(c=><option key={c} value={c}>{c}</option>)}
+                                        </select>
+                                    </div>
+                                    <button type="submit" className="w-full bg-blue-600 text-white font-bold py-3 rounded-lg shadow mt-2">AGREGAR AL CARRITO</button>
+                                </form>
+                            </div>
+                        </div>
+                    )}
 
                     {/* Export Modal */}
                     {showExportModal && (
