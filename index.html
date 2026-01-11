@@ -22,10 +22,11 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getAuth, signInAnonymously, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut, updateProfile } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getFirestore, collection, doc, addDoc, updateDoc, onSnapshot, query, orderBy, writeBatch, deleteDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, collection, doc, addDoc, updateDoc, onSnapshot, query, orderBy, writeBatch, deleteDoc, getDocs, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         
-        window.FirebaseSDK = { initializeApp, getAuth, signInAnonymously, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut, updateProfile, getFirestore, collection, doc, addDoc, updateDoc, onSnapshot, query, orderBy, writeBatch, deleteDoc, getDocs };
-        window.firebaseLoaded = true;
+        window.FirebaseSDK = { initializeApp, getAuth, signInAnonymously, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut, updateProfile, getFirestore, collection, doc, addDoc, updateDoc, onSnapshot, query, orderBy, writeBatch, deleteDoc, getDocs, setDoc };
+        
+        window.dispatchEvent(new Event('firebase-ready'));
     </script>
 
     <style>
@@ -33,34 +34,19 @@
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         input, select { font-size: 16px; }
-        .loader { border: 3px solid #f3f3f3; border-radius: 50%; border-top: 3px solid #004aad; width: 24px; height: 24px; -webkit-animation: spin 1s linear infinite; animation: spin 1s linear infinite; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body class="bg-gray-50 text-gray-800">
-    
     <div id="root"></div>
 
-    <!-- PRE-LOADER DE EMERGENCIA -->
-    <div id="loading-screen" style="position:fixed; top:0; left:0; width:100%; height:100%; background:white; display:flex; flex-direction:column; align-items:center; justify-content:center; z-index:9999;">
-        <img src="https://i.imgur.com/23tlEnQ.jpeg" style="width:100px; margin-bottom:20px; border-radius:10px;">
-        <div class="loader"></div>
-        <p style="margin-top:10px; color:#666; font-size:12px;">Iniciando...</p>
-        <button onclick="localStorage.clear(); window.location.reload();" style="margin-top:30px; padding:10px 20px; background:#e31d2b; color:white; border:none; border-radius:5px; font-weight:bold; cursor:pointer;">
-            ¿TRABADO? CLIC AQUÍ
-        </button>
-    </div>
-
     <script type="text/babel">
-        // OCULTAR PRE-LOADER CUANDO REACT MONTA
-        setTimeout(() => {
-            const loader = document.getElementById('loading-screen');
-            if(loader) loader.style.display = 'none';
-        }, 1500);
-
         const { useState, useEffect, useMemo, useRef } = React;
 
-        // --- CONFIGURACIÓN ---
+        // --- CONFIGURACIÓN DE SEGURIDAD ---
+        const ADMIN_EMAIL = "worlddigital2011@gmail.com";
+        const APP_ID = "nini-app"; // ID para la colección pública
+
+        // --- TUS CLAVES ---
         const firebaseConfig = {
           apiKey: "AIzaSyD1XQbCn5DjBr6mSJ2LyAihW6_pRpcMdLs",
           authDomain: "nini-app-61a6a.firebaseapp.com",
@@ -69,6 +55,7 @@
           messagingSenderId: "1019944365082",
           appId: "1:1019944365082:web:3e921a4207a846306235a3"
         };
+
         const SHEET_ID = "1Yz_Br2J41diPtd-PL8lLE_Q8eQex-Vf7ifkIqdEqQEQ";
         const LINK_HOJA_PRODUCTOS_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=LINK_HOJA_PRODUCTOS`; 
         const LINK_HOJA_HISTORIAL_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=LINK_HOJA_HISTORIAL`;
@@ -76,15 +63,16 @@
         const COLORS = {
             blue: '#004aad', red: '#e31d2b', bg: '#f8f9fa',
             bar1: '#93C5FD', bar2: '#60A5FA', gray: '#E5E7EB',
-            pie: ['#93C5FD', '#FCA5A5', '#86EFAC', '#FDE047', '#D8B4FE', '#F9A8D4', '#67E8F9']
+            chartColors: ['#93C5FD', '#FCA5A5', '#86EFAC', '#FDE047', '#D8B4FE', '#F9A8D4', '#67E8F9', '#C4B5FD']
         };
 
-        const INITIAL_PRODUCTS = [
-            { id: '101', name: 'Cargando...', brand: '...', category: 'General', price: 0, plannedQty: 0, actualQty: 0 },
-        ];
-
-        // --- ICONOS INDESTRUCTIBLES ---
-        const Icon = ({ p, s=24, c="" }) => ( <svg xmlns="http://www.w3.org/2000/svg" width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={c}>{p}</svg> );
+        // --- ICONOS ---
+        const Icon = ({ path, size = 24, className = "", fill="none" }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill={fill} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+                {path}
+            </svg>
+        );
+        
         const Icons = {
             Search: <Icon p={<><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></>} s={16}/>,
             Trash: <Icon p={<><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></>} />,
@@ -95,76 +83,70 @@
             Filter: <Icon p={<><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></>} />,
             Save: <Icon p={<><path d="M15.2 3a2 2 0 0 1 1.4.6l3.8 3.8a2 2 0 0 1 .6 1.4V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/><path d="M17 21v-8H7v8"/><path d="M7 3v5h8"/></>} />,
             List: <Icon p={<><line x1="8" x2="21" y1="6" y2="6"/><line x1="8" x2="21" y1="12" y2="12"/><line x1="8" x2="21" y1="18" y2="18"/><line x1="3" x2="3.01" y1="6" y2="6"/><line x1="3" x2="3.01" y1="12" y2="12"/><line x1="3" x2="3.01" y1="18" y2="18"/></>} />,
-            Pie: <Icon p={<><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/></>} />,
-            Db: <Icon p={<><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></>} />,
+            PieChart: <Icon p={<><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/></>} />,
+            Database: <Icon p={<><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></>} />,
             Copy: <Icon p={<><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></>} />,
             X: <Icon p={<><path d="M18 6 6 18"/><path d="m6 6 12 12"/></>} />,
-            Down: <Icon p={<path d="m6 9 6 6 6-6"/>} />,
-            Up: <Icon p={<path d="m18 15-6-6-6 6"/>} />,
+            RefreshCw: <Icon p={<><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M3 21v-5h5"/></>} />,
+            ChevronDown: <Icon p={<path d="m6 9 6 6 6-6"/>} />,
+            ChevronUp: <Icon p={<path d="m18 15-6-6-6 6"/>} />,
             Download: <Icon p={<><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></>} />,
             Share: <Icon p={<><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" x2="12" y1="2" y2="15"/></>} />,
             User: <Icon p={<><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></>} />,
             LogOut: <Icon p={<><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></>} />,
-            Alert: <Icon p={<><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></>} />,
+            AlertTriangle: <Icon p={<><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></>} />,
             Settings: <Icon p={<><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.09a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></>} />,
-            Google: <svg width="20" height="20" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+            Google: <svg width="20" height="20" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>,
+            BadgeCheck: <Icon p={<><path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.78 4.78 4 4 0 0 1-6.74 0 4 4 0 0 1-4.78-4.78 4 4 0 0 1 0-6.74Z"/><path d="m9 12 2 2 4-4"/></>} />
         };
 
-        // --- ERROR BOUNDARY ---
+        const INITIAL_PRODUCTS = [
+            { id: '101', name: 'Cargando...', brand: '...', category: 'General', price: 0, plannedQty: 0, actualQty: 0 },
+        ];
+
         class ErrorBoundary extends React.Component {
             constructor(props) { super(props); this.state = { hasError: false }; }
-            static getDerivedStateFromError(error) { return { hasError: true }; }
+            static getDerivedStateFromError(error) { return { hasError: true, error }; }
             render() {
-                if (this.state.hasError) return (
-                    <div className="flex flex-col items-center justify-center h-screen p-4 text-center">
-                        <h2 className="text-xl font-bold text-gray-800 mb-2">¡Ups! Algo falló.</h2>
-                        <button onClick={() => { localStorage.clear(); window.location.reload(); }} className="bg-red-500 text-white px-4 py-2 rounded font-bold">
-                            REINICIAR APLICACIÓN
-                        </button>
-                    </div>
-                );
+                if (this.state.hasError) return <div className="p-10 text-center"><Icons.AlertTriangle className="mx-auto text-red-500 mb-2"/><h2 className="font-bold">Error</h2><button onClick={()=>window.location.reload()} className="mt-4 bg-blue-500 text-white px-4 py-2 rounded">Reiniciar</button></div>;
                 return this.props.children;
             }
         }
 
-        // --- COMPONENTE PRINCIPAL ---
+        const AdBanner = () => (
+            <div className="bg-white border-b border-gray-100 py-3 px-4 flex justify-center">
+                <div className="w-full max-w-sm h-12 bg-gray-100 rounded border border-dashed border-gray-300 flex items-center justify-center text-xs text-gray-400">ESPACIO PUBLICIDAD (ADS)</div>
+            </div>
+        );
+
         function App() {
             const [user, setUser] = useState(null);
             const [fb, setFb] = useState(null);
             const [view, setView] = useState('login'); 
+            const [products, setProducts] = useState(INITIAL_PRODUCTS);
+            const [history, setHistory] = useState([]);
             const [loading, setLoading] = useState(true);
             const [statusMsg, setStatusMsg] = useState('');
             const [showSettings, setShowSettings] = useState(false);
-            const [isDemo, setIsDemo] = useState(false);
+            const [isDemoMode, setIsDemoMode] = useState(false);
             const [isLoggingIn, setIsLoggingIn] = useState(false);
             
-            // Data
-            const [products, setProducts] = useState(() => {
-                // LECTURA SEGURA DE CACHE
-                try {
-                    const saved = localStorage.getItem('nini_current_list');
-                    if (saved && saved !== 'undefined') {
-                        const parsed = JSON.parse(saved);
-                        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
-                    }
-                } catch(e) { localStorage.removeItem('nini_current_list'); }
-                return INITIAL_PRODUCTS;
-            });
-            const [history, setHistory] = useState([]);
+            // ADMIN CHECK
+            const isAdmin = user && user.email === ADMIN_EMAIL;
 
-            // UI
+            // Filtros UI
             const [filter, setFilter] = useState('Todos'); 
             const [brandFilter, setBrandFilter] = useState('Todas');
             const [showBrandFilter, setShowBrandFilter] = useState(false);
             const [searchTerm, setSearchTerm] = useState('');
-            const [isLocked, setIsLocked] = useState(() => localStorage.getItem('nini_is_locked') === 'true');
+            const [isLocked, setIsLocked] = useState(false);
             const [showAddModal, setShowAddModal] = useState(false);
             const [showExportModal, setShowExportModal] = useState(false);
             const [exportContent, setExportContent] = useState('');
             const [showInstallModal, setShowInstallModal] = useState(false);
             const [deferredPrompt, setDeferredPrompt] = useState(null);
 
-            // 1. INICIAR
+            // 1. INICIAR FIREBASE
             useEffect(() => {
                 const init = () => {
                     if(window.FirebaseSDK) {
@@ -178,7 +160,7 @@
                             onAuthStateChanged(auth, (u) => {
                                 setUser(u);
                                 setLoading(false);
-                                if(u) setView('list');
+                                if(u) setView('list'); else setView('login');
                             });
                         } catch(e) { console.error(e); setLoading(false); enableDemo(); }
                     } else { setTimeout(init, 500); }
@@ -186,28 +168,40 @@
                 init();
             }, []);
 
-            const enableDemo = () => { setIsDemo(true); setUser({ uid: 'demo', isAnonymous: true }); setLoading(false); setView('list'); };
+            const enableDemo = () => {
+                setIsDemoMode(true);
+                setUser({ uid: 'demo-user', isAnonymous: true });
+                setLoading(false);
+                setView('list');
+                // En modo demo, usamos productos locales de ejemplo
+                setProducts([{ id: 'demo1', name: 'Producto Demo', brand: 'Marca', category: 'Varios', price: 100, plannedQty: 0, actualQty: 0 }]);
+            };
 
-            // 2. LISTENERS
+            // 2. ESCUCHAR DATOS (PUBLICOS + USUARIO)
             useEffect(() => {
-                if(!user || !fb || isDemo) return;
-                const { db, onSnapshot, collection, orderBy, query } = window.FirebaseSDK;
+                if(!user || !fb || isDemoMode) return;
+                const { onSnapshot, collection, orderBy, query } = window.FirebaseSDK;
+                const db = fb.db;
                 
-                // Productos
-                const unsubProd = onSnapshot(collection(db, `users/${user.uid}/products`), (snap) => {
+                // A) CATALOGO PÚBLICO (Leído por todos, escrito por Admin)
+                // Usamos la ruta "artifacts/nini-app/public/data/products"
+                const prodRef = collection(db, 'artifacts', APP_ID, 'public', 'data', 'products');
+                const unsubProd = onSnapshot(prodRef, (snap) => {
                     const items = snap.docs.map(d => ({id: d.id, ...d.data()}));
-                    setProducts(items.sort((a,b) => (a.name||'').localeCompare(b.name||'')));
-                }, () => enableDemo());
+                    // Si está vacío y no hay cache local, mostrar vacío.
+                    setProducts(items.sort((a,b) => (a.name || '').localeCompare(b.name || '')));
+                }, (e) => console.warn("Error leyendo catálogo", e));
 
-                // Historial
-                const unsubHist = onSnapshot(query(collection(db, `users/${user.uid}/history`), orderBy("date", "desc")), (snap) => {
+                // B) HISTORIAL DEL USUARIO (Privado)
+                const histRef = query(collection(db, 'artifacts', APP_ID, 'users', user.uid, 'history'), orderBy("date", "desc"));
+                const unsubHist = onSnapshot(histRef, (snap) => {
                     setHistory(snap.docs.map(d => ({id: d.id, ...d.data()})));
                 });
 
                 return () => { unsubProd(); unsubHist(); };
             }, [user, fb]);
 
-            // Install Event
+            // Install Logic
             useEffect(() => {
                 const handler = (e) => { e.preventDefault(); setDeferredPrompt(e); };
                 window.addEventListener('beforeinstallprompt', handler);
@@ -215,193 +209,308 @@
             }, []);
 
             const handleInstallClick = () => {
-                if(deferredPrompt) { deferredPrompt.prompt(); deferredPrompt.userChoice.then((r) => { if(r.outcome==='accepted') setDeferredPrompt(null); }); }
-                else setShowInstallModal(true);
+                if (deferredPrompt) {
+                    deferredPrompt.prompt();
+                    deferredPrompt.userChoice.then((r) => { if (r.outcome === 'accepted') setDeferredPrompt(null); });
+                } else { setShowInstallModal(true); }
             };
 
-            // Actions
+            // ACCIONES
             const handleLogin = async () => {
                 if(isLoggingIn) return; setIsLoggingIn(true);
-                try { await fb.signInWithPopup(fb.auth, new fb.GoogleAuthProvider()); } catch(e) { alert("Error Login Google. Probando Anónimo."); handleAnon(); } finally { setIsLoggingIn(false); }
+                try {
+                    const { GoogleAuthProvider } = window.FirebaseSDK;
+                    const provider = new GoogleAuthProvider();
+                    await fb.signInWithPopup(fb.auth, provider);
+                } catch(e) { 
+                    alert("Error Google. Se activará modo invitado."); 
+                    handleAnon(); 
+                } finally { setIsLoggingIn(false); }
             };
             const handleAnon = async () => {
-                if(isLoggingIn) return; setIsLoggingIn(true);
-                try { await fb.signInAnonymously(fb.auth); } catch(e) { enableDemo(); } finally { setIsLoggingIn(false); }
+                try { await fb.signInAnonymously(fb.auth); } catch(e) { enableDemo(); }
+            };
+            const handleLogout = async () => {
+                if(fb) { await window.FirebaseSDK.signOut(fb.auth); window.location.reload(); }
             };
 
-            const updateProd = async (id, data) => {
+            // GESTIÓN DE PRODUCTOS (ADMIN VS USER)
+            const handleUpdateProduct = async (id, data) => {
+                // Actualización optimista local (Solo afecta la vista actual)
                 setProducts(prev => prev.map(p => p.id === id ? { ...p, ...data } : p));
-                if(user && fb && !isDemo) {
-                    try { await window.FirebaseSDK.updateDoc(window.FirebaseSDK.doc(fb.db, `users/${user.uid}/products`, id), data); } catch(e){}
+                
+                // Si es Admin, y está cambiando precio, actualizar en la nube
+                if (isAdmin && data.price !== undefined) {
+                     const { doc, updateDoc } = window.FirebaseSDK;
+                     try {
+                         const ref = doc(fb.db, 'artifacts', APP_ID, 'public', 'data', 'products', id);
+                         await updateDoc(ref, { price: data.price });
+                     } catch(e) {}
                 }
-            };
-            const addProd = async (item) => {
-                setProducts(prev => [item, ...prev]);
-                if(user && fb && !isDemo) {
-                    try { await window.FirebaseSDK.addDoc(window.FirebaseSDK.collection(fb.db, `users/${user.uid}/products`), item); } catch(e){}
-                }
-            };
-            const handleCleanDB = async () => {
-                if(!confirm("¿Borrar todo?")) return;
-                if(!isDemo) {
-                     const { collection, getDocs, deleteDoc, doc } = window.FirebaseSDK;
-                     const snap = await getDocs(collection(fb.db, `users/${user.uid}/products`));
-                     snap.forEach(d => deleteDoc(doc(fb.db, `users/${user.uid}/products`, d.id)));
-                }
-                setProducts([]);
+                
+                // Nota: Cantidades (plannedQty, actualQty) ahora son SOLO locales en memoria
+                // para usuarios normales. No se guardan en la DB de productos para no afectar a otros.
             };
 
-            // AUTO IMPORT
+            const handleAddProduct = async (newItem) => {
+                if (isAdmin) {
+                    // ADMIN: Agrega al catálogo global
+                    const { collection, addDoc } = window.FirebaseSDK;
+                    try {
+                        const ref = collection(fb.db, 'artifacts', APP_ID, 'public', 'data', 'products');
+                        await addDoc(ref, newItem);
+                        setStatusMsg("Producto Público Agregado");
+                        setTimeout(()=>setStatusMsg(''), 2000);
+                    } catch(e) { alert("Error al guardar en nube pública"); }
+                } else {
+                    // USER: Agrega solo localmente a su lista temporal
+                    setProducts(prev => [newItem, ...prev]);
+                    setStatusMsg("Producto Agregado (Local)");
+                    setTimeout(()=>setStatusMsg(''), 2000);
+                }
+            };
+
+            // ADMIN: MIGRACIÓN (Solo visible para worlddigital2011@gmail.com)
             const handleImportSheet = async () => {
-                if(!confirm("Se importarán datos del Sheet. ¿Seguro?")) return;
-                setStatusMsg('Importando...'); setShowSettings(false);
+                if(!confirm("⚠️ ADMIN: Vas a sobreescribir el catálogo público con el Sheet. ¿Seguro?")) return;
+                setStatusMsg('Migrando...'); setShowSettings(false);
+                
+                const cleanCSVValue = (text) => (typeof text === 'string' ? text.replace(/^"|"$/g, '').replace('$', '').trim() : "");
+                const parseNumberAR = (str) => {
+                    if (!str) return 0;
+                    if (typeof str === 'number') return str;
+                    try {
+                        const strVal = String(str);
+                        if (strVal.includes('.') && !strVal.includes(',')) return parseFloat(strVal) || 0;
+                        return parseFloat(strVal.replace(/\./g, '').replace(',', '.')) || 0;
+                    } catch (e) { return 0; }
+                };
+
                 try {
-                    const clean = t => (typeof t==='string' ? t.replace(/^"|"$/g,'').trim() : "");
-                    const num = s => parseFloat(String(s).replace(/\./g,'').replace(',','.')) || 0;
+                    const res = await fetch(LINK_HOJA_PRODUCTOS_URL);
+                    const txt = await res.text();
+                    if(txt.includes('<html')) throw new Error("Sheet privado");
+                    const lines = txt.split('\n').slice(1);
                     
                     const { collection, writeBatch, doc } = window.FirebaseSDK;
-                    let batch = writeBatch(fb.db); let count=0;
+                    const db = fb.db;
+                    let batch = writeBatch(db);
+                    let count = 0;
+                    
+                    const publicRef = collection(db, 'artifacts', APP_ID, 'public', 'data', 'products');
 
-                    // Products
-                    const txtP = await (await fetch(LINK_HOJA_PRODUCTOS_URL)).text();
-                    txtP.split('\n').slice(1).forEach(l => {
-                        const c = l.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(clean);
-                        if(c.length<2 || !c[1]) return;
-                        batch.set(doc(collection(fb.db, `users/${user.uid}/products`)), {
-                            name: c[1], brand: c[2]||'Genérico', category: c[3]||'Varios', price: num(c[4]), plannedQty: 0, actualQty: 0
+                    lines.forEach(l => {
+                        const c = l.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(cleanCSVValue);
+                        if(c.length < 2 || !c[1]) return;
+                        
+                        const ref = doc(publicRef); // Nuevo ID automático
+                        batch.set(ref, {
+                            name: c[1], 
+                            brand: c[2]||'Genérico', 
+                            category: c[3]||'Varios', 
+                            price: parseNumberAR(c[4]),
+                            // No guardamos cantidades en el maestro
                         });
-                        if(++count % 400 === 0) { batch.commit(); batch = writeBatch(fb.db); }
+                        count++;
+                        if(count % 400 === 0) { batch.commit(); batch = writeBatch(db); }
                     });
                     
-                    // History
-                    const txtH = await (await fetch(LINK_HOJA_HISTORIAL_URL)).text();
-                    const groups = {};
-                    txtH.split('\n').slice(1).forEach(l => {
-                        const c = l.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(clean);
-                        if(c.length<6 || !c[0]) return;
-                        if(!groups[c[0]]) groups[c[0]] = { total: 0, items: [] };
-                        const qty = num(c[4]); const price = num(c[5]);
-                        groups[c[0]].items.push({ name: c[1], brand: c[2], category: c[3]||'Varios', actualQty: qty, price });
-                        groups[c[0]].total += qty * price;
-                    });
-                    
-                    Object.keys(groups).forEach(d => {
-                        let iso = new Date().toISOString();
-                        if(d.includes('/')) { const [dd,mm,yy] = d.split('/'); iso = new Date(`${yy.length===2?'20'+yy:yy}-${mm.padStart(2,'0')}-${dd.padStart(2,'0')}T12:00:00`).toISOString(); }
-                        batch.set(doc(collection(fb.db, `users/${user.uid}/history`)), { date: iso, displayDate: d, total: groups[d].total, items: groups[d].items });
-                        if(++count % 400 === 0) { batch.commit(); batch = writeBatch(fb.db); }
-                    });
-
                     await batch.commit();
-                    setStatusMsg('');
-                } catch(e) { alert("Error importando: " + e.message); setStatusMsg(''); }
+                    setStatusMsg('¡Migración Completa!');
+                    setTimeout(() => setStatusMsg(''), 3000);
+                } catch(e) { alert("Error: " + e.message); setStatusMsg(''); }
             };
 
-            const finishPurchase = async () => {
-                const bought = products.filter(p => p.actualQty > 0);
-                if(bought.length===0) return alert("Vacío");
+            const handleFinishPurchase = async () => {
+                const boughtItems = products.filter(p => p.actualQty > 0);
+                if(boughtItems.length===0) return alert("Vacío");
                 if(!confirm("¿Finalizar compra?")) return;
                 
-                if(user && fb && !isDemo) {
-                    const { collection, addDoc, doc, updateDoc } = window.FirebaseSDK;
-                    await addDoc(collection(fb.db, `users/${user.uid}/history`), {
+                if(user && fb && !isDemoMode) {
+                    const { collection, addDoc } = window.FirebaseSDK;
+                    const historyItem = {
                         date: new Date().toISOString(),
-                        total: bought.reduce((a,b)=>a+(b.price*b.actualQty),0),
-                        items: bought.map(({name,brand,category,price,actualQty})=>({name,brand,category,price,actualQty}))
-                    });
-                    bought.forEach(p => updateDoc(doc(fb.db, `users/${user.uid}/products`, p.id), { actualQty: 0 }));
+                        total: boughtItems.reduce((a,b)=>a+(b.price*b.actualQty),0),
+                        items: boughtItems.map(({name,brand,category,price,actualQty})=>({name,brand,category,price,actualQty}))
+                    };
+                    // Guardar en historial privado del usuario
+                    await addDoc(collection(fb.db, 'artifacts', APP_ID, 'users', user.uid, 'history'), historyItem);
                 }
-                setProducts(p => p.map(i => ({...i, actualQty:0})));
+                
+                // Limpiar cantidades locales
+                setProducts(prev => prev.map(p => ({...p, actualQty: 0})));
                 setView('history');
+            };
+
+            const handleQty = (id, d, field) => {
+                if(field === 'plannedQty' && isLocked) return;
+                setProducts(prev => prev.map(p => p.id === id ? { ...p, [field]: Math.max(0, p[field] + d) } : p));
             };
 
             const handleAddItem = (e) => {
                 e.preventDefault(); const fd = new FormData(e.target);
-                const num = s => parseFloat(String(s).replace(/\./g,'').replace(',','.')) || 0;
-                addProd({ name: fd.get('name'), brand: fd.get('brand')||'Genérico', category: fd.get('cat')||'Varios', price: num(fd.get('price')), plannedQty: 0, actualQty: 1 });
-                setShowAddModal(false); setStatusMsg('Agregado'); setTimeout(()=>setStatusMsg(''), 2000);
+                const parseNumberAR = (str) => {
+                   if (!str) return 0;
+                   const s = String(str);
+                   if (s.includes('.') && !s.includes(',')) return parseFloat(s) || 0;
+                   return parseFloat(s.replace(/\./g, '').replace(',', '.')) || 0;
+                };
+                const newItem = {
+                    // ID temporal si es local, o firebase lo asignará si es admin
+                    id: `new_${Date.now()}`,
+                    name: fd.get('name'), 
+                    brand: fd.get('brand') || 'Genérico', 
+                    category: fd.get('category'), 
+                    price: parseNumberAR(fd.get('price')), 
+                    plannedQty: 0, 
+                    actualQty: 1
+                };
+                handleAddProduct(newItem);
+                setShowAddModal(false);
+                setStatusMsg(isAdmin ? 'Guardado en Nube' : 'Agregado Local');
+                setTimeout(()=>setStatusMsg(''), 2000);
             };
 
-            // RENDER
-            if(loading) return <div className="h-screen flex items-center justify-center text-blue-600 font-bold">Iniciando...</div>;
+            const copyToClip = () => {
+                document.getElementById('exportarea').select();
+                document.execCommand('copy');
+                alert("Copiado.");
+            };
 
-            if(!user) return (
+            if (loading) return <div className="h-screen flex flex-col items-center justify-center text-blue-600 font-bold gap-4"><div className="spinner"></div>Iniciando...</div>;
+
+            if (!user) return (
                 <div className="h-screen bg-gradient-to-b from-blue-900 to-blue-700 flex flex-col items-center justify-center p-8 text-white text-center">
                     <img src="https://i.imgur.com/23tlEnQ.jpeg" className="w-40 rounded-3xl shadow-xl mb-8"/>
-                    <button onClick={handleLogin} disabled={isLoggingIn} className="bg-white text-gray-800 w-full py-4 rounded-xl font-bold shadow-lg flex items-center justify-center gap-3 active:scale-95">{Icons.Google} {isLoggingIn?'Iniciando...':'Entrar con Google'}</button>
-                    <button onClick={handleAnon} className="mt-4 text-sm text-blue-300 underline">Invitado</button>
+                    <button onClick={handleLogin} disabled={isLoggingIn} className={`bg-white text-gray-800 w-full py-4 rounded-xl font-bold shadow-lg flex items-center justify-center gap-3 active:scale-95 transition ${isLoggingIn?'opacity-50':''}`}>
+                        {Icons.Google} {isLoggingIn ? '...' : 'Continuar con Google'}
+                    </button>
+                    <button onClick={handleAnonymousLogin} disabled={isLoggingIn} className="mt-4 text-sm text-blue-300 underline hover:text-white">Invitado</button>
                 </div>
             );
 
             return (
                 <div className="min-h-screen bg-gray-50 pb-20 font-sans flex flex-col">
                     <div className="sticky top-0 z-50 bg-white shadow-md">
-                        <div className="flex justify-between items-center px-4 py-2 bg-white">
+                         <div className="flex justify-between items-center px-4 py-2 bg-white">
                             <img src="https://i.imgur.com/23tlEnQ.jpeg" className="h-12 object-contain"/>
                             <div className="flex gap-2 items-center">
-                                {view === 'list' && (
-                                    <div className="flex items-center gap-2">
-                                        <button onClick={handleInstallClick} className="bg-gray-100 text-blue-600 text-[10px] font-bold px-3 py-1.5 rounded-full flex gap-1 border border-gray-200">{Icons.Download} App</button>
-                                        <div className="flex items-center bg-gray-50 rounded-lg p-1 px-3 border border-gray-200 shadow-sm">
-                                            <div className="flex flex-col items-end mr-3"><span className="text-[9px] text-gray-500 font-bold uppercase">Plan</span><span className="text-sm font-medium">${products.reduce((a,b)=>a+(b.price*(b.plannedQty||0)),0)}</span></div>
-                                            <div className="w-px h-6 bg-gray-300"></div>
-                                            <div className="flex flex-col items-end ml-3"><span className="text-[10px] text-blue-600 font-black uppercase">Carrito</span><span className="text-2xl font-black text-blue-900 leading-none">${products.reduce((a,b)=>a+(b.price*(b.actualQty||0)),0)}</span></div>
-                                        </div>
-                                        <button onClick={finishPurchase} className="bg-blue-600 text-white p-2 rounded-full shadow-lg active:scale-95">{Icons.Save}</button>
-                                    </div>
-                                )}
-                                <button onClick={()=>setShowSettings(true)} className="p-2 text-gray-400">{Icons.Settings}</button>
+                                {view === 'list' && <TotalsHeader products={products} onSave={handleFinishPurchase} onInstall={handleInstallClick} />}
+                                {view === 'history' && <div className="text-xs font-bold text-green-600 flex items-center gap-1 bg-green-50 px-3 py-1 rounded border border-green-100">{Icons.Database} En Línea</div>}
+                                <button onClick={()=>setShowSettings(true)} className="p-2 text-gray-400 hover:text-gray-600"><Icons.Settings size={20}/></button>
                             </div>
                         </div>
+                        {view === 'list' && user && (
+                            <div className={`px-4 py-1 text-[10px] font-bold flex justify-between ${isAdmin ? 'bg-red-100 text-red-800' : 'bg-blue-50 text-blue-800'}`}>
+                                <span>Hola, {user.displayName ? user.displayName.split(' ')[0] : 'Invitado'} 👋</span>
+                                <span>{isAdmin ? 'MODO ADMIN' : 'Nini Cloud'}</span>
+                            </div>
+                        )}
                     </div>
 
                     <div className="flex-1 overflow-y-auto">
                         {view === 'list' ? (
-                            <ListView products={products} onUpdate={updateProd} onAdd={addProd} filter={filter} setFilter={setFilter} brandFilter={brandFilter} setBrandFilter={setBrandFilter} showBrandFilter={showBrandFilter} setShowBrandFilter={setShowBrandFilter} searchTerm={searchTerm} setSearchTerm={setSearchTerm} isLocked={isLocked} setIsLocked={setIsLocked} showAdd={showAddModal} setShowAdd={setShowAddModal} handleQty={handleQty} onClear={()=>setProducts(p=>p.map(i=>({...i, actualQty:0})))} />
+                            <ListView 
+                                products={products} onUpdate={handleUpdateProduct} onAdd={handleAddProduct}
+                                onClear={() => setProducts(p => p.map(i => ({...i, actualQty: 0})))} // Limpiar solo cantidades visuales
+                                filter={filter} setFilter={setFilter} 
+                                brandFilter={brandFilter} setBrandFilter={setBrandFilter} showBrandFilter={showBrandFilter} setShowBrandFilter={setShowBrandFilter}
+                                searchTerm={searchTerm} setSearchTerm={setSearchTerm}
+                                isLocked={isLocked} setIsLocked={setIsLocked}
+                                showAdd={showAddModal} setShowAdd={setShowAddModal}
+                                handleQty={handleQty} isAdmin={isAdmin}
+                            />
                         ) : (
                             <HistoryView history={history} />
                         )}
                     </div>
 
-                    {/* Modales */}
                     {showSettings && (
-                        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
+                        <div className="fixed inset-0 z-[60] bg-black/50 flex items-center justify-center p-4">
                             <div className="bg-white rounded-xl w-full max-w-sm p-5 space-y-3">
-                                <div className="flex justify-between"><h3 className="font-bold">Ajustes</h3><button onClick={()=>setShowSettings(false)}>{Icons.X}</button></div>
-                                <div className="text-xs text-gray-500">ID: {user.uid}</div>
-                                <button onClick={handleImportSheet} className="w-full py-3 bg-green-600 text-white rounded font-bold flex justify-center gap-2">{Icons.Download} Importar Sheet</button>
-                                <button onClick={handleCleanDB} className="w-full py-3 border border-red-200 text-red-600 rounded font-bold flex justify-center gap-2">{Icons.Trash} Borrar Todo</button>
-                                {!isDemo && <button onClick={handleLogout} className="w-full py-3 border rounded font-bold flex justify-center gap-2">{Icons.LogOut} Salir</button>}
+                                <div className="flex justify-between mb-4"><h3 className="font-bold">Ajustes</h3><button onClick={()=>setShowSettings(false)}><Icons.X/></button></div>
+                                <div className="text-xs text-gray-500 break-all bg-gray-50 p-2 rounded">ID: {user.uid}</div>
+                                
+                                {isAdmin && (
+                                    <div className="border-t pt-3 mt-2">
+                                        <p className="text-xs text-red-500 font-bold mb-2 uppercase">Zona Admin</p>
+                                        <button onClick={handleImportSheet} className="w-full py-3 bg-green-600 text-white rounded font-bold flex justify-center gap-2 shadow mb-2">{Icons.Download} MIGRAR SHEET A NUBE</button>
+                                        <p className="text-[10px] text-gray-400 text-center">Usa esto solo para actualizar el catálogo público.</p>
+                                    </div>
+                                )}
+                                
+                                <button onClick={handleLogout} className="w-full py-3 border rounded font-bold flex justify-center gap-2 mt-4 hover:bg-gray-50">{Icons.LogOut} Salir</button>
                             </div>
                         </div>
                     )}
                     
                     {showAddModal && (
-                        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
+                        <div className="fixed inset-0 z-[60] bg-black/50 flex items-center justify-center p-4">
                             <form onSubmit={handleAddItem} className="bg-white p-5 rounded-xl w-full max-w-xs shadow-2xl space-y-3">
-                                <div className="flex justify-between items-center"><h3 className="font-bold text-lg">Agregar</h3><button type="button" onClick={()=>setShowAddModal(false)}>{Icons.X}</button></div>
+                                <div className="flex justify-between items-center"><h3 className="font-bold text-lg">{isAdmin ? 'Nuevo Producto Global' : 'Agregar Local'}</h3><button type="button" onClick={()=>setShowAddModal(false)}><Icons.X size={20}/></button></div>
+                                {isAdmin && <div className="bg-yellow-50 text-[10px] p-2 text-yellow-800 rounded">Se guardará en el catálogo para TODOS.</div>}
                                 <input name="name" className="w-full border p-2 rounded" placeholder="Nombre" required autoFocus/>
                                 <div className="flex gap-2"><input name="brand" className="w-full border p-2 rounded" placeholder="Marca"/><input name="price" type="number" className="w-full border p-2 rounded" placeholder="Precio"/></div>
-                                <select name="cat" className="w-full border p-2 rounded"><option value="Varios">Varios</option>{['Almacén','Bebidas','Limpieza','Perfumería','Frescos'].map(c=><option key={c} value={c}>{c}</option>)}</select>
+                                <select name="category" className="w-full border p-2 rounded"><option value="Varios">Varios</option>{['Almacén','Bebidas','Limpieza','Perfumería','Frescos','Galletitas','Carnicería','Verdulería'].map(c=><option key={c} value={c}>{c}</option>)}</select>
                                 <button className="w-full bg-blue-600 text-white font-bold py-3 rounded">Guardar</button>
                             </form>
                         </div>
                     )}
-
-                    {/* Nav */}
-                    <div className="fixed bottom-0 w-full flex justify-around items-center pb-safe z-50 h-16 shadow-[0_-5px_10px_rgba(0,0,0,0.05)]" style={{backgroundColor: COLORS.blue}}>
-                        <button onClick={()=>setView('list')} className={`flex flex-col items-center justify-center w-full h-full ${view==='list'?'text-white':'text-white/50'}`}>{Icons.List}<span className="text-[10px] font-bold mt-1">Lista</span></button>
-                        <div className="w-px h-8 bg-white/20"></div>
-                        <button onClick={()=>setView('history')} className={`flex flex-col items-center justify-center w-full h-full ${view==='history'?'text-white':'text-white/50'}`}>{Icons.PieChart}<span className="text-[10px] font-bold mt-1">Historial</span></button>
-                    </div>
                     
+                    {showInstallModal && (
+                        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/70 p-6 animate-fade-in" onClick={() => setShowInstallModal(false)}>
+                            <div className="bg-white rounded-xl p-6 max-w-sm text-center shadow-2xl relative" onClick={e => e.stopPropagation()}>
+                                <button onClick={() => setShowInstallModal(false)} className="absolute top-2 right-2 text-gray-400"><Icons.X size={20}/></button>
+                                <h3 className="text-lg font-bold text-gray-800 mb-2">Instalar Nini App</h3>
+                                <p className="text-sm text-gray-600 mb-4">Para instalar esta web como una App en tu iPhone:</p>
+                                <div className="space-y-3 text-sm text-left bg-gray-50 p-4 rounded-lg">
+                                    <div className="flex items-center gap-3"><Icons.Share className="text-blue-500"/> <span>1. Toca el botón <b>Compartir</b> abajo.</span></div>
+                                    <div className="flex items-center gap-3"><Icons.Plus className="text-gray-600 border border-gray-400 rounded p-0.5"/> <span>2. Elige <b>"Agregar a Inicio"</b>.</span></div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                    
+                    {showExportModal && (
+                        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-4">
+                            <div className="bg-white rounded-xl shadow-xl w-full max-w-md flex flex-col max-h-[80vh]">
+                                <div className="p-4 border-b flex justify-between"><h3 className="font-bold">Copiar al Excel</h3><button onClick={() => setShowExportModal(false)}><Icons.X size={20}/></button></div>
+                                <div className="p-4 flex-1 bg-gray-50"><textarea id="exportarea" readOnly value={exportContent} className="w-full h-32 p-2 text-xs border rounded mb-2" onClick={e => e.target.select()} /><button onClick={copyToClip} className="w-full py-2 bg-green-600 text-white font-bold rounded">COPIAR AHORA</button></div>
+                                <div className="p-4 border-t"><button onClick={() => { setProducts(prev => prev.map(p => ({...p, actualQty:0}))); setShowExportModal(false); }} className="w-full py-2 text-blue-600 font-bold border border-blue-600 rounded">Limpiar Carrito</button></div>
+                            </div>
+                        </div>
+                    )}
+
+                    <div className="fixed bottom-0 w-full flex justify-around items-center pb-safe z-50 h-16 shadow-lg" style={{ backgroundColor: COLORS.blue }}>
+                        <button onClick={() => setView('list')} className={`flex flex-col items-center justify-center w-full h-full ${view === 'list' ? 'text-white' : 'text-white/50'}`}><Icons.List size={24} strokeWidth={2.5} /><span className="text-[10px] font-bold mt-1">Lista</span></button>
+                        <div className="w-px h-8 bg-white/20"></div>
+                        <button onClick={() => setView('history')} className={`flex flex-col items-center justify-center w-full h-full ${view === 'history' ? 'text-white' : 'text-white/50'}`}><Icons.PieChart size={24} strokeWidth={2.5} /><span className="text-[10px] font-bold mt-1">Historial</span></button>
+                    </div>
+
                     {statusMsg && <div className="fixed top-20 left-1/2 -translate-x-1/2 bg-black/80 text-white text-xs px-4 py-2 rounded-full shadow-lg z-50">{statusMsg}</div>}
                 </div>
             );
         }
 
-        // --- LIST VIEW ---
-        const ListView = ({ products, onUpdate, onAdd, onClear, filter, setFilter, brandFilter, setBrandFilter, showBrandFilter, setShowBrandFilter, searchTerm, setSearchTerm, isLocked, setIsLocked, showAdd, setShowAdd, handleQty }) => {
+        // --- SUBCOMPONENTES ---
+        const TotalsHeader = ({ products, onSave, onInstall }) => {
+            const totalBudget = products.reduce((acc, p) => acc + (p.price * (p.plannedQty || 0)), 0);
+            const totalSpent = products.reduce((acc, p) => acc + (p.price * (p.actualQty || 0)), 0);
+            
+            return (
+                <div className="flex items-center gap-2">
+                   <button onClick={onInstall} className="bg-gray-100 text-blue-600 text-[10px] font-bold px-3 py-1.5 rounded-full flex items-center gap-1 hover:bg-gray-200 border border-gray-200" title="Instalar App"><Icons.Download size={14}/> <span>App</span></button>
+                   <div className="flex items-center bg-gray-50 rounded-lg p-1 px-3 border border-gray-200 shadow-sm">
+                       <div className="flex flex-col items-end mr-3"><span className="text-[9px] text-gray-500 font-bold uppercase tracking-wider">Plan</span><span className="text-sm font-medium text-gray-700">${totalBudget.toLocaleString('es-AR')}</span></div>
+                       <div className="w-px h-6 bg-gray-300"></div>
+                       <div className="flex flex-col items-end ml-3"><span className="text-[10px] text-blue-600 font-black uppercase tracking-wider">Carrito</span><span className="text-2xl font-black text-blue-900 leading-none">${totalSpent.toLocaleString('es-AR')}</span></div>
+                   </div>
+                   <button onClick={onSave} className="bg-blue-600 text-white p-2 rounded-full shadow-lg active:scale-95 hover:bg-blue-700 transition-all"><Icons.Save size={18} /></button>
+                </div>
+            );
+        };
+
+        const ListView = ({ products, onUpdate, onAdd, onClear, filter, setFilter, brandFilter, setBrandFilter, showBrandFilter, setShowBrandFilter, searchTerm, setSearchTerm, isLocked, setIsLocked, showAdd, setShowAdd, handleQty, isAdmin }) => {
             const cats = ['Todos', ...new Set(products.map(p => p.category || 'Varios'))].sort();
             const brands = ['Todas', ...new Set(products.filter(p => filter === 'Todos' || p.category === filter).map(p => p.brand || 'Genérico'))].sort();
             const filtered = products.filter(p => (filter === 'Todos' || p.category === filter) && (brandFilter === 'Todas' || p.brand === brandFilter) && p.name.toLowerCase().includes(searchTerm.toLowerCase()));
@@ -411,13 +520,13 @@
                     <div className="bg-white p-3 border-b flex flex-col gap-3">
                         <AdBanner />
                         <div className="flex gap-2">
-                             <button onClick={() => setIsLocked(!isLocked)} className={`w-10 h-10 flex items-center justify-center rounded-lg border ${isLocked ? 'bg-orange-50 border-orange-200 text-orange-600' : 'bg-gray-50 text-gray-500'}`}>{isLocked ? Icons.Lock : Icons.Unlock}</button>
+                             <button onClick={() => setIsLocked(!isLocked)} className={`w-10 h-10 flex items-center justify-center rounded-lg border ${isLocked ? 'bg-orange-50 border-orange-200 text-orange-600' : 'bg-gray-50 text-gray-500'}`}><Icon name={isLocked ? "Lock" : "Unlock"} size={18} /></button>
                              <div className="relative flex-1 flex gap-2">
-                                <div className="relative flex-1"><span className="absolute left-3 top-2 text-gray-400">{Icons.Search}</span><input className="w-full h-10 pl-9 pr-3 rounded-lg border bg-gray-50 focus:bg-white outline-none text-sm" placeholder="Buscar..." onChange={e=>setSearchTerm(e.target.value)}/></div>
-                                <button onClick={()=>setShowAdd(true)} className="bg-blue-600 text-white w-10 rounded flex items-center justify-center shadow"><Icons.Plus/></button>
+                                <div className="relative flex-1"><span className="absolute left-3 top-2 text-gray-400"><Icons.Search size={16}/></span><input className="w-full h-10 pl-9 pr-3 rounded-lg border bg-gray-50 focus:bg-white focus:border-blue-500 outline-none text-sm" placeholder="Buscar..." onChange={e=>setSearchTerm(e.target.value)}/></div>
+                                <button onClick={()=>setShowAdd(true)} className={`${isAdmin ? 'bg-red-600' : 'bg-blue-600'} text-white w-10 rounded flex items-center justify-center shadow`} title={isAdmin ? "Crear Global" : "Agregar Local"}><Icons.Plus size={18}/></button>
                              </div>
-                             <button onClick={() => setShowBrandFilter(!showBrandFilter)} className={`w-10 h-10 rounded-lg border flex items-center justify-center ${showBrandFilter ? 'bg-blue-100 text-blue-700' : 'text-gray-400'}`}>{Icons.Filter}</button>
-                             <button onClick={onClear} className="w-10 h-10 text-gray-400 hover:text-red-500 flex items-center justify-center">{Icons.Trash}</button>
+                             <button onClick={() => setShowBrandFilter(!showBrandFilter)} className={`w-10 h-10 rounded-lg border flex items-center justify-center ${showBrandFilter ? 'bg-blue-100 text-blue-700' : 'text-gray-400'}`}><Icons.Filter size={18}/></button>
+                             <button onClick={onClear} className="w-10 h-10 text-gray-400 hover:text-red-500 flex items-center justify-center"><Icons.Trash2 size={18}/></button>
                         </div>
                         {showBrandFilter && <div className="px-3 py-2 bg-blue-50 rounded border border-blue-100"><div className="text-[10px] font-bold text-blue-800 mb-1 uppercase">Marca</div><select value={brandFilter} onChange={e => setBrandFilter(e.target.value)} className="w-full p-2 text-sm border rounded"><option value="Todas">Todas</option>{brands.map(b => <option key={b} value={b}>{b}</option>)}</select></div>}
                         <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">{cats.map(c => (<button key={c} onClick={() => setFilter(c)} className={`px-3 py-1 rounded-full text-xs font-bold whitespace-nowrap transition-colors ${filter === c ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600'}`}>{c}</button>))}</div>
@@ -432,13 +541,13 @@
                                     <div className="flex items-center mt-1"><span className="text-sm text-gray-400 mr-1">$</span><input type="number" className="font-bold text-gray-700 w-20 bg-transparent border-b border-dashed outline-none" value={p.price} onChange={e=>onUpdate(p.id, {price: Number(e.target.value)})} /></div>
                                 </div>
                                 <div className={`w-16 flex items-center justify-center border-x border-gray-100 px-1 ${isLocked ? 'opacity-40 pointer-events-none' : ''}`}>
-                                    <button onClick={() => handleQty(p.id, -1, 'plannedQty')} className="px-1 text-gray-400"><Icons.Minus/></button>
+                                    <button onClick={() => handleQty(p.id, -1, 'plannedQty')} className="px-1 text-gray-400"><Icons.Minus size={12}/></button>
                                     <span className="font-bold text-gray-600 w-6 text-center text-lg">{p.plannedQty||0}</span>
-                                    <button onClick={() => handleQty(p.id, 1, 'plannedQty')} className="px-1 text-gray-400"><Icons.Plus/></button>
+                                    <button onClick={() => handleQty(p.id, 1, 'plannedQty')} className="px-1 text-gray-400"><Icons.Plus size={12}/></button>
                                 </div>
                                 <div className="w-28 flex items-center justify-between pl-3">
                                     <button onClick={() => handleQty(p.id, -1, 'actualQty')} className="w-10 h-10 bg-white border rounded shadow-sm flex items-center justify-center text-gray-600"><Icons.Minus/></button>
-                                    <span className={`text-xl font-bold ${p.actualQty > 0 ? 'text-green-600' : 'text-blue-900'}`}>{p.actualQty||0}</span>
+                                    <span className={`text-xl font-bold ${p.actualQty >= p.plannedQty && p.plannedQty > 0 ? 'text-green-600' : 'text-blue-900'}`}>{p.actualQty||0}</span>
                                     <button onClick={() => handleQty(p.id, 1, 'actualQty')} className="w-10 h-10 bg-blue-600 text-white rounded shadow-md flex items-center justify-center active:scale-95"><Icons.Plus/></button>
                                 </div>
                             </div>
@@ -450,23 +559,41 @@
         };
 
         const HistoryView = ({ history }) => {
-            const [expandedId, setExpandedId] = useState(null);
             const [filterDate, setFilterDate] = useState('all');
+            const [expandedId, setExpandedId] = useState(null);
+
+            const availableMonths = useMemo(() => {
+                const unique = new Set();
+                history.forEach(h => {
+                    try {
+                        const d = new Date(h.date);
+                        if (!isNaN(d)) unique.add(JSON.stringify({ value: `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`, label: d.toLocaleString('es-AR', { month: 'long', year: 'numeric' }) }));
+                    } catch(e){}
+                });
+                return Array.from(unique).map(s => JSON.parse(s)).sort((a,b) => b.value.localeCompare(a.value));
+            }, [history]);
 
             const pieData = useMemo(() => {
                 const source = filterDate === 'all' ? history : history.filter(h => h.date.startsWith(filterDate));
-                const map = {}; let tot = 0;
-                source.forEach(h => h.items.forEach(i => { const v = i.actualQty*i.price; map[i.category] = (map[i.category]||0)+v; tot+=v; }));
-                return Object.entries(map).map(([k,v]) => ({name:k, value:v, percent: tot?(v/tot)*100:0})).sort((a,b)=>b.value-a.value);
+                const catMap = {}; let total = 0;
+                source.forEach(h => {
+                    if(h.items) h.items.forEach(i => {
+                        const sub = (i.actualQty||0)*(i.price||0);
+                        catMap[i.category] = (catMap[i.category] || 0) + sub;
+                        total += sub;
+                    });
+                });
+                return Object.entries(catMap).map(([k,v]) => ({ name: k, value: v, percent: total ? (v/total)*100 : 0 })).sort((a,b)=>b.value-a.value);
             }, [history, filterDate]);
 
             const monthlyData = useMemo(() => {
-                const arr = Array(12).fill(0);
-                history.forEach(h => { const d = new Date(h.date); if(!isNaN(d)) arr[d.getMonth()] += h.total; });
-                return arr.map((t,i) => ({ label: new Date(2024, i, 1).toLocaleString('es-AR', {month:'short'}).toUpperCase(), total: t }));
+                const months = Array.from({length: 12}, (_, i) => ({ label: new Date(2024, i, 1).toLocaleString('es-AR', { month: 'short' }).toUpperCase(), total: 0 }));
+                history.forEach(h => { const d = new Date(h.date); if(!isNaN(d)) months[d.getMonth()].total += h.total; });
+                return months;
             }, [history]);
-            
+
             const max = Math.max(...monthlyData.map(m=>m.total), 1);
+            const totalYear = monthlyData.reduce((a,b)=>a+b.total,0);
             const pieGrad = pieData.length ? pieData.reduce((acc, c, i) => {
                 const prev = pieData.slice(0, i).reduce((a,b)=>a+b.percent,0);
                 return `${acc}, ${COLORS.pie[i%COLORS.pie.length]} ${prev}% ${prev+c.percent}%`;
@@ -475,28 +602,30 @@
             return (
                 <div className="p-4 space-y-6 pb-24">
                     <div className="bg-white rounded-xl shadow border p-4">
-                        <div className="flex justify-between mb-4"><h3 className="font-bold text-gray-700 flex gap-2 text-blue-600">{Icons.PieChart} Gasto Rubro</h3></div>
+                        <div className="flex justify-between mb-4"><h3 className="font-bold text-gray-700 flex gap-2 text-blue-600">{Icons.PieChart} Gasto Rubro</h3>
+                        <div className="relative"><select value={filterDate} onChange={(e) => setFilterDate(e.target.value)} className="appearance-none bg-gray-100 text-gray-700 text-xs font-bold py-1 pl-3 pr-8 rounded-lg border focus:outline-none"><option value="all">Todo el Año</option>{availableMonths.map(m => (<option key={m.value} value={m.value}>{m.label}</option>))}</select><span className="absolute right-2 top-1.5 pointer-events-none">{Icons.ChevronDown}</span></div>
+                        </div>
                         <div className="flex items-center gap-4">
                             <div className="w-32 h-32 rounded-full flex items-center justify-center flex-col shadow-inner" style={{background: `conic-gradient(${pieGrad})`}}>
                                 <div className="bg-white w-24 h-24 rounded-full flex flex-col items-center justify-center shadow-sm">
-                                    <span className="text-[10px] text-gray-400">TOTAL</span>
-                                    <span className="text-xs font-bold">${Math.round(pieData.reduce((a,b)=>a+b.value,0))}</span>
+                                    <span className="text-[9px] text-gray-400">TOTAL</span>
+                                    <span className="text-xs font-bold">${Math.round(pieData.reduce((a,b)=>a+b.value,0)).toLocaleString('es-AR')}</span>
                                 </div>
                             </div>
                             <div className="flex-1 space-y-1">{pieData.slice(0,5).map((c,i)=>(<div key={i} className="flex justify-between text-xs"><span>{c.name}</span><span className="font-bold">{Math.round(c.percent)}%</span></div>))}</div>
                         </div>
                     </div>
                     <div className="bg-white rounded-xl shadow border p-4">
-                        <div className="flex justify-between mb-4"><h3 className="font-bold text-gray-700">Anual</h3></div>
-                        <div className="flex items-end gap-1 h-32 border-b pb-2">{monthlyData.map((d,i)=>(<div key={i} className="flex-1 flex flex-col items-center gap-1 h-full justify-end"><div className="w-full rounded-t-sm" style={{height: d.total>0?`${(d.total/max)*100}%`:'4px', background: d.total>0?(i%2===0?COLORS.bar1:COLORS.bar2):COLORS.gray}}></div><span className="text-[8px]">{d.label}</span></div>))}</div>
+                        <div className="flex justify-between mb-4"><h3 className="font-bold text-gray-700">Anual</h3><span className="text-xs bg-blue-50 text-blue-600 px-2 py-1 rounded font-bold">${totalYear.toLocaleString('es-AR')}</span></div>
+                        <div className="flex items-end gap-1 h-32 border-b pb-2">{monthlyData.map((d,i)=>(<div key={i} className="flex-1 flex flex-col items-center gap-1 h-full justify-end group"><div className="w-full relative flex items-end justify-center h-full"><div className="w-full rounded-t-sm transition-all" style={{height: d.total>0?`${(d.total/max)*100}%`:'4px', background: d.total>0?(i%2===0?COLORS.bar1:COLORS.bar2):COLORS.gray}}></div>{d.total > 0 && <div className="absolute -top-6 bg-black text-white text-[9px] px-1 rounded opacity-0 group-hover:opacity-100">${d.total.toLocaleString('es-AR')}</div>}</div><span className="text-[8px] font-bold text-gray-500">{d.label}</span></div>))}</div>
                     </div>
                     <div className="bg-white rounded-xl shadow border overflow-hidden">
                         <div className="bg-gray-50 px-4 py-2 border-b font-bold text-xs text-gray-500">HISTORIAL</div>
                         {history.map(h => (
                             <div key={h.id} className="border-b last:border-0">
-                                <div onClick={()=>setExpandedId(expandedId===h.id?null:h.id)} className="px-4 py-3 flex justify-between items-center hover:bg-gray-50">
+                                <div onClick={()=>setExpandedId(expandedId===h.id?null:h.id)} className="px-4 py-3 flex justify-between items-center hover:bg-gray-50 cursor-pointer">
                                     <div><div className="font-bold text-sm">{new Date(h.date).toLocaleDateString('es-AR')}</div><div className="text-xs text-gray-400">{h.items.length} items</div></div>
-                                    <div className="flex items-center gap-2"><span className="font-bold text-blue-600">${h.total}</span>{Icons.ChevronDown}</div>
+                                    <div className="flex items-center gap-2"><span className="font-bold text-blue-600">${h.total.toLocaleString('es-AR')}</span>{Icons.ChevronDown}</div>
                                 </div>
                                 {expandedId === h.id && <div className="bg-gray-50 p-3 text-xs border-t">{h.items.map((i,x)=><div key={x} className="flex justify-between mb-1 border-b border-dashed pb-1"><span>{i.actualQty}x {i.name}</span><span>${i.price}</span></div>)}</div>}
                             </div>
