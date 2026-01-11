@@ -5,14 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Nini Cloud</title>
     
-    <!-- PWA -->
     <meta name="theme-color" content="#ffffff">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <link rel="apple-touch-icon" href="https://i.imgur.com/23tlEnQ.jpeg">
     <link rel="manifest" href="data:application/manifest+json;base64,ewogICJuYW1lIjogIk5pbmkgQ2xvdWQiLAogICJzaG9ydF9uYW1lIjogIk5pbmkiLAogICJzdGFydF91cmwiOiAiLiIsCiAgImRpc3BsYXkiOiAic3RhbmRhbG9uZSIsCiAgImJhY2tncm91bmRfY29sb3IiOiAiI2ZmZmZmZiIsCiAgInRoZW1lX2NvbG9yIjogIiNmZmZmZmYiLAogICJpY29ucyI6IFsKICAgIHsKICAgICAgInNyYyI6ICJodHRwczovL2kuaW1ndXIuY29tLzIzdGxFblEuanBlZyIsCiAgICAgICJzaXplcyI6ICI1MTJ4NTEyIiwKICAgICAgInR5cGUiOiAiaW1hZ2UvanBlZyIKICAgIH0KICBdCn0=">
 
-    <!-- PANTALLA DE ERROR DE EMERGENCIA (Si React falla antes de cargar) -->
     <script>
         window.onerror = function(msg, url, line, col, error) {
             const root = document.getElementById('root');
@@ -23,11 +21,8 @@
                         <div style="background:white; border:1px solid #ffcccc; padding:15px; border-radius:8px; font-size:12px; color:#c00; margin-bottom:20px; max-width:100%; word-break:break-all; text-align:left;">
                             <strong>${msg}</strong><br>Línea: ${line}
                         </div>
-                        <button onclick="navigator.clipboard.writeText('${msg} | Line: ${line}').then(()=>alert('¡Error copiado! Pégalo en el chat.'))" style="background:#004aad; color:white; border:none; padding:12px 24px; border-radius:8px; font-weight:bold; font-size:14px; cursor:pointer; margin-bottom:10px; width:100%;">
-                            COPIAR ERROR
-                        </button>
-                        <button onclick="localStorage.clear(); window.location.reload()" style="background:#eee; color:#666; border:none; padding:10px 20px; border-radius:8px; font-size:12px; cursor:pointer; width:100%;">
-                            Borrar Datos y Reiniciar
+                        <button onclick="localStorage.clear(); window.location.reload()" style="background:#004aad; color:white; border:none; padding:12px 24px; border-radius:8px; font-weight:bold; font-size:14px; cursor:pointer; width:100%;">
+                            REINICIAR APP
                         </button>
                     </div>
                 `;
@@ -35,19 +30,17 @@
         };
     </script>
 
-    <!-- LIBRERÍAS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     
-    <!-- FIREBASE (VERSION COMPAT - MÁS ESTABLE) -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 
     <style>
-        body { -webkit-tap-highlight-color: transparent; user-select: none; overscroll-behavior-y: none; font-family: -apple-system, sans-serif; }
+        body { -webkit-tap-highlight-color: transparent; user-select: none; font-family: -apple-system, sans-serif; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         input, select { font-size: 16px; }
         .loader { width:30px; height:30px; border:3px solid #eee; border-top-color:#004aad; border-radius:50%; animation:spin 1s infinite linear; }
@@ -56,7 +49,6 @@
 </head>
 <body class="bg-gray-50 text-gray-800">
     <div id="root">
-        <!-- LOADING INICIAL HTML -->
         <div style="height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center;">
             <div class="loader"></div>
         </div>
@@ -65,7 +57,7 @@
     <script type="text/babel">
         const { useState, useEffect, useMemo } = React;
 
-        // --- CLAVES Y CONFIG ---
+        // --- CONFIG ---
         const firebaseConfig = {
           apiKey: "AIzaSyD1XQbCn5DjBr6mSJ2LyAihW6_pRpcMdLs",
           authDomain: "nini-app-61a6a.firebaseapp.com",
@@ -74,12 +66,12 @@
           messagingSenderId: "1019944365082",
           appId: "1:1019944365082:web:3e921a4207a846306235a3"
         };
+
         const SHEET_ID = "1Yz_Br2J41diPtd-PL8lLE_Q8eQex-Vf7ifkIqdEqQEQ";
         const LINK_HOJA_PRODUCTOS_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=LINK_HOJA_PRODUCTOS`; 
         const LINK_HOJA_HISTORIAL_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=LINK_HOJA_HISTORIAL`;
         const ADMIN_EMAIL = "worlddigital2011@gmail.com";
 
-        // Inicializar Firebase
         if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const db = firebase.firestore();
@@ -90,8 +82,7 @@
             pie: ['#93C5FD', '#FCA5A5', '#86EFAC', '#FDE047', '#D8B4FE', '#F9A8D4', '#67E8F9']
         };
 
-        // --- ICONOS CORREGIDOS (COMPONENTS) ---
-        // Ahora son funciones que aceptan props, solucionando el error #130
+        // --- ICONOS ---
         const Icon = ({ p, size=24, className="", ...rest }) => (
             <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} {...rest}>
                 {p}
@@ -127,49 +118,17 @@
             { id: '101', name: 'Cargando...', brand: '...', category: 'General', price: 0, plannedQty: 0, actualQty: 0 },
         ];
 
-        // --- ERROR BOUNDARY ---
         class ErrorBoundary extends React.Component {
             constructor(props) { super(props); this.state = { hasError: false, error: null }; }
             static getDerivedStateFromError(error) { return { hasError: true, error }; }
-            componentDidCatch(error, info) { console.error("EB Catch:", error); }
-            
-            copyError = () => {
-                const txt = `Error: ${this.state.error?.message}\nUserAgent: ${navigator.userAgent}`;
-                navigator.clipboard.writeText(txt).then(()=>alert("Copiado! Pegalo en el chat."));
-            }
-
             render() {
-                if (this.state.hasError) return (
-                    <div className="flex flex-col items-center justify-center h-screen p-6 text-center bg-gray-50 font-sans">
-                        <div className="bg-white p-6 rounded-xl shadow-lg border border-red-100 max-w-sm">
-                            <Icons.Alert className="text-red-500 w-12 h-12 mx-auto mb-4" />
-                            <h2 className="text-xl font-bold text-gray-800 mb-2">Algo salió mal</h2>
-                            <div className="text-xs text-red-600 mb-4 font-mono bg-red-50 p-2 rounded text-left overflow-auto max-h-32 border border-red-100">
-                                {this.state.error?.toString()}
-                            </div>
-                            <div className="flex flex-col gap-2">
-                                <button onClick={this.copyError} className="bg-blue-600 text-white px-4 py-3 rounded-lg font-bold shadow active:scale-95">
-                                    COPIAR ERROR
-                                </button>
-                                <button onClick={()=>{localStorage.clear(); window.location.reload()}} className="bg-gray-200 text-gray-700 px-4 py-3 rounded-lg font-bold active:scale-95">
-                                    Borrar datos y Reiniciar
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                );
+                if (this.state.hasError) return <div className="p-10 text-center"><Icons.Alert className="mx-auto text-red-500 mb-2"/><h2 className="font-bold">Error</h2><p className="text-xs text-gray-500 mb-4">{this.state.error?.message}</p><button onClick={()=>{localStorage.clear(); window.location.reload()}} className="bg-red-500 text-white px-4 py-2 rounded">Reiniciar</button></div>;
                 return this.props.children;
             }
         }
 
-        // --- COMPONENTE PUBLICIDAD ---
-        const AdBanner = () => (
-            <div className="bg-white border-b border-gray-100 py-3 px-4 flex justify-center">
-                <div className="w-full max-w-sm h-12 bg-gray-100 rounded border border-dashed border-gray-300 flex items-center justify-center text-xs text-gray-400">ESPACIO PUBLICITARIO (ADS)</div>
-            </div>
-        );
+        const AdBanner = () => <div className="bg-white border-b border-gray-100 py-3 px-4 flex justify-center"><div className="w-full max-w-sm h-12 bg-gray-100 rounded border border-dashed border-gray-300 flex items-center justify-center text-xs text-gray-400">ESPACIO PUBLICIDAD (ADS)</div></div>;
 
-        // --- COMPONENTE PRINCIPAL ---
         function App() {
             const [user, setUser] = useState(null);
             const [view, setView] = useState('login'); 
@@ -242,7 +201,6 @@
                 } else { setShowInstallModal(true); }
             };
 
-            // ACCIONES
             const handleLogin = async () => {
                 if(isLoggingIn) return; setIsLoggingIn(true);
                 try {
@@ -250,21 +208,21 @@
                     await auth.signInWithPopup(provider);
                 } catch(e) { 
                     console.error("Error login:", e);
-                    alert("No se pudo conectar con Google. Prueba 'Invitado' si estás probando localmente.");
+                    alert("No se pudo conectar con Google. Prueba 'Invitado'.");
                     enableDemo();
                 } finally { setIsLoggingIn(false); }
             };
             const handleAnon = async () => {
-                try { await auth.signInAnonymously(); } catch(e) { alert(e.message); }
+                try { await auth.signInAnonymously(); } catch(e) { alert("Error: "+e.message); }
             };
             const handleLogout = () => auth.signOut().then(()=>window.location.reload());
 
-            const updateProd = (id, data) => {
+            const handleUpdateProduct = (id, data) => {
                 setProducts(prev => prev.map(p => p.id === id ? { ...p, ...data } : p));
                 if(user && !isDemo) db.collection('users').doc(user.uid).collection('products').doc(id).update(data);
             };
 
-            const addProd = (item) => {
+            const handleAddProduct = (item) => {
                 setProducts(prev => [item, ...prev]);
                 if(user && !isDemo) db.collection('users').doc(user.uid).collection('products').add(item);
             };
@@ -275,7 +233,9 @@
                     const txtP = await resP.text();
                     if(txtP.includes('<html')) return;
                     const linesP = txtP.split('\n').slice(1);
+                    
                     const batch = db.batch();
+                    const prodRef = db.collection('users').doc(uid).collection('products');
                     
                     const clean = t => (typeof t==='string' ? t.replace(/^"|"$/g,'').trim() : "");
                     const num = s => parseFloat(String(s).replace(/\./g,'').replace(',','.')) || 0;
@@ -284,7 +244,7 @@
                     linesP.forEach(l => {
                         const c = l.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(clean);
                         if(c.length<2 || !c[1]) return;
-                        const ref = db.collection('users').doc(uid).collection('products').doc();
+                        const ref = prodRef.doc();
                         batch.set(ref, { name: c[1], brand: c[2]||'-', category: c[3]||'Varios', price: num(c[4]), plannedQty: 0, actualQty: 0 });
                         count++;
                         if(count % 450 === 0) { batch.commit(); }
@@ -302,9 +262,10 @@
                         groups[c[0]].items.push({ name: c[1], brand: c[2], category: c[3]||'Varios', actualQty: qty, price });
                         groups[c[0]].total += qty * price;
                     });
+                    
                     Object.keys(groups).forEach(d => {
                         let iso = new Date().toISOString();
-                        if(d.includes('/')) { const [dd,mm,yy] = d.split('/'); iso = new Date(`${yy.length===2?'20'+yy:y}-${mm.padStart(2,'0')}-${dd.padStart(2,'0')}T12:00:00`).toISOString(); }
+                        if(d.includes('/')) { const [dd,mm,yy] = d.split('/'); iso = new Date(`${yy.length===2?'20'+yy:yy}-${mm.padStart(2,'0')}-${dd.padStart(2,'0')}T12:00:00`).toISOString(); }
                         const ref = db.collection('users').doc(uid).collection('history').doc();
                         batch.set(ref, { date: iso, displayDate: d, total: groups[d].total, items: groups[d].items });
                     });
@@ -318,8 +279,7 @@
                  setStatusMsg("Importando..."); setShowSettings(false);
                  await autoImport(user.uid);
             };
-
-            const cleanDB = async () => {
+            const handleCleanDB = async () => {
                 if(!confirm("¿Borrar todo?")) return;
                 setProducts([]);
                 if(!isDemo) {
@@ -331,7 +291,7 @@
                 }
             };
 
-            const finishPurchase = async () => {
+            const handleFinishPurchase = async () => {
                 const bought = products.filter(p => p.actualQty > 0);
                 if(bought.length===0) return alert("Vacío");
                 if(!confirm("¿Guardar?")) return;
@@ -352,30 +312,17 @@
 
             const handleQty = (id, d, field) => {
                 if(field === 'plannedQty' && isLocked) return;
-                setProducts(prev => prev.map(p => p.id === id ? { ...p, [field]: Math.max(0, p[field] + d) } : p));
-                if (user && !isDemo) {
-                    const p = products.find(p => p.id === id);
-                    if(p) db.collection('users').doc(user.uid).collection('products').doc(id).update({ [field]: Math.max(0, (p[field]||0) + d) });
-                }
+                // FIX: Usamos handleUpdateProduct para la lógica unificada
+                const p = products.find(p => p.id === id);
+                if(p) handleUpdateProduct(id, { [field]: Math.max(0, (p[field]||0) + d) });
             };
 
             const handleAddItem = (e) => {
                 e.preventDefault(); const fd = new FormData(e.target);
                 const num = s => parseFloat(String(s).replace(/\./g,'').replace(',','.')) || 0;
-                addProd({ name: fd.get('name'), brand: fd.get('brand')||'Genérico', category: fd.get('cat')||'Varios', price: num(fd.get('price')), plannedQty: 0, actualQty: 1 });
+                // FIX: Usamos handleAddProduct
+                handleAddProduct({ name: fd.get('name'), brand: fd.get('brand')||'Genérico', category: fd.get('cat')||'Varios', price: num(fd.get('price')), plannedQty: 0, actualQty: 1 });
                 setShowAddModal(false); setStatusMsg('Agregado'); setTimeout(()=>setStatusMsg(''), 2000);
-            };
-            
-            const handleClearCart = () => {
-                if(confirm("¿Vaciar carrito?")) {
-                    setProducts(prev => prev.map(p => ({...p, actualQty:0})));
-                    if(user && !isDemo) {
-                        // En background
-                        products.forEach(p => {
-                            if(p.actualQty>0) db.collection('users').doc(user.uid).collection('products').doc(p.id).update({ actualQty: 0 });
-                        });
-                    }
-                }
             };
 
             const copyToClip = () => {
@@ -398,7 +345,7 @@
                 <div className="h-screen bg-gradient-to-b from-blue-900 to-blue-700 flex flex-col items-center justify-center p-8 text-white text-center">
                     <img src="https://i.imgur.com/23tlEnQ.jpeg" className="w-40 rounded-3xl shadow-xl mb-8"/>
                     <button onClick={handleLogin} disabled={isLoggingIn} className={`bg-white text-gray-800 w-full py-4 rounded-xl font-bold shadow-lg flex items-center justify-center gap-3 active:scale-95 transition ${isLoggingIn?'opacity-70':''}`}>
-                        {Icons.Google} {isLoggingIn ? 'Iniciando...' : 'Continuar con Google'}
+                        {Icons.Google()} {isLoggingIn ? 'Iniciando...' : 'Continuar con Google'}
                     </button>
                     <button onClick={handleAnon} disabled={isLoggingIn} className="mt-4 text-sm text-blue-300 underline hover:text-white">Invitado</button>
                 </div>
@@ -410,30 +357,30 @@
                         <div className="flex justify-between items-center px-4 py-2 bg-white overflow-hidden">
                             <div className="h-14 w-40 overflow-hidden flex items-center -ml-3"><img src="https://i.imgur.com/23tlEnQ.jpeg" className="h-full w-full object-contain scale-[1.8]" /></div>
                             <div className="flex gap-2 items-center">
-                                {view === 'list' && <div className="flex items-center gap-2"><button onClick={()=>{if(deferredPrompt){deferredPrompt.prompt(); deferredPrompt.userChoice.then(r=>{if(r.outcome==='accepted')setDeferredPrompt(null)})} else setShowInstallModal(true)}} className="bg-gray-100 text-blue-600 text-[10px] font-bold px-3 py-1.5 rounded-full flex items-center gap-1 border hover:bg-gray-200">{Icons.Download} App</button><div className="flex items-center bg-gray-50 rounded-lg p-1 px-3 border shadow-sm"><div className="flex flex-col items-end mr-3"><span className="text-[9px] text-gray-500 font-bold uppercase">Plan</span><span className="text-sm font-medium">${products.reduce((a,b)=>a+(b.price*(b.plannedQty||0)),0)}</span></div><div className="w-px h-6 bg-gray-300"></div><div className="flex flex-col items-end ml-3"><span className="text-[10px] text-blue-600 font-black uppercase">Carrito</span><span className="text-2xl font-black text-blue-900 leading-none">${products.reduce((a,b)=>a+(b.price*(b.actualQty||0)),0)}</span></div></div><button onClick={finishPurchase} className="bg-blue-600 text-white p-2 rounded-full shadow active:scale-95">{Icons.Save}</button></div>}
-                                {view === 'history' && <div className="text-xs font-bold text-green-600 flex items-center gap-1 bg-green-50 px-3 py-1 rounded border border-green-100">{Icons.Database} En Línea</div>}
-                                <button onClick={()=>setShowSettings(true)} className="p-2 text-gray-400 hover:text-gray-600"><Icons.Settings size={20}/></button>
+                                {view === 'list' && <div className="flex items-center gap-2"><button onClick={()=>{if(deferredPrompt){deferredPrompt.prompt(); deferredPrompt.userChoice.then(r=>{if(r.outcome==='accepted')setDeferredPrompt(null)})} else setShowInstallModal(true)}} className="bg-gray-100 text-blue-600 text-[10px] font-bold px-3 py-1.5 rounded-full flex items-center gap-1 border hover:bg-gray-200">{Icons.Download()} App</button><div className="flex items-center bg-gray-50 rounded-lg p-1 px-3 border shadow-sm"><div className="flex flex-col items-end mr-3"><span className="text-[9px] text-gray-500 font-bold uppercase">Plan</span><span className="text-sm font-medium">${products.reduce((a,b)=>a+(b.price*(b.plannedQty||0)),0)}</span></div><div className="w-px h-6 bg-gray-300"></div><div className="flex flex-col items-end ml-3"><span className="text-[10px] text-blue-600 font-black uppercase">Carrito</span><span className="text-2xl font-black text-blue-900 leading-none">${products.reduce((a,b)=>a+(b.price*(b.actualQty||0)),0)}</span></div></div><button onClick={handleFinishPurchase} className="bg-blue-600 text-white p-2 rounded-full shadow active:scale-95">{Icons.Save()}</button></div>}
+                                {view === 'history' && <div className="text-xs font-bold text-green-600 flex items-center gap-1 bg-green-50 px-3 py-1 rounded border border-green-100">{Icons.Database()} En Línea</div>}
+                                <button onClick={()=>setShowSettings(true)} className="p-2 text-gray-400 hover:text-gray-600">{Icons.Settings()}</button>
                             </div>
                         </div>
                         {view === 'list' && user && <div className="bg-blue-50 px-4 py-1 text-[10px] text-blue-800 font-bold flex justify-between"><span>Hola, {user.displayName ? user.displayName.split(' ')[0] : 'Invitado'} 👋</span><span>{isDemo ? 'MODO TEST' : 'NUBE'}</span></div>}
                     </div>
 
                     <div className="flex-1 overflow-y-auto">
-                        {view === 'list' ? <ListView products={products} onUpdate={updateProd} onAdd={handleAddProduct} filter={filter} setFilter={setFilter} brandFilter={brandFilter} setBrandFilter={setBrandFilter} showBrandFilter={showBrandFilter} setShowBrandFilter={setShowBrandFilter} searchTerm={searchTerm} setSearchTerm={setSearchTerm} isLocked={isLocked} setIsLocked={setIsLocked} showAdd={showAddModal} setShowAdd={setShowAddModal} onClear={handleClearCart} handleQty={handleQty} /> : <HistoryView history={history} />}
+                        {view === 'list' ? <ListView products={products} onUpdate={handleUpdateProduct} onAdd={handleAddProduct} filter={filter} setFilter={setFilter} brandFilter={brandFilter} setBrandFilter={setBrandFilter} showBrandFilter={showBrandFilter} setShowBrandFilter={setShowBrandFilter} searchTerm={searchTerm} setSearchTerm={setSearchTerm} isLocked={isLocked} setIsLocked={setIsLocked} showAdd={showAddModal} setShowAdd={setShowAddModal} onClear={()=>products.forEach(p=>p.actualQty>0 && handleUpdateProduct(p.id, {actualQty:0}))} handleQty={handleQty} /> : <HistoryView history={history} />}
                     </div>
 
-                    {showSettings && <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4"><div className="bg-white rounded-xl w-full max-w-sm p-5 space-y-3"><div className="flex justify-between mb-4"><h3 className="font-bold">Ajustes</h3><button onClick={()=>setShowSettings(false)}>{Icons.X}</button></div><div className="text-xs text-gray-500 bg-gray-50 p-2 rounded">ID: {user.uid}</div>{isAdmin && <button onClick={handleAdminImport} className="w-full py-3 bg-green-600 text-white rounded font-bold flex justify-center gap-2">{Icons.Download} Sincronizar Sheet</button>}<button onClick={cleanDB} className="w-full py-3 border text-red-600 font-bold flex justify-center gap-2">{Icons.Trash} Resetear</button><button onClick={handleLogout} className="w-full py-3 border font-bold flex justify-center gap-2">{Icons.LogOut} Salir</button></div></div>}
+                    {showSettings && <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4"><div className="bg-white rounded-xl w-full max-w-sm p-5 space-y-3"><div className="flex justify-between mb-4"><h3 className="font-bold">Ajustes</h3><button onClick={()=>setShowSettings(false)}>{Icons.X()}</button></div><div className="text-xs text-gray-500 bg-gray-50 p-2 rounded">ID: {user.uid}</div>{isAdmin && <button onClick={handleAdminImport} className="w-full py-3 bg-green-600 text-white rounded font-bold flex justify-center gap-2">{Icons.Download()} Sincronizar Sheet</button>}<button onClick={handleCleanDB} className="w-full py-3 border text-red-600 font-bold flex justify-center gap-2">{Icons.Trash()} Resetear</button><button onClick={handleLogout} className="w-full py-3 border font-bold flex justify-center gap-2">{Icons.LogOut()} Salir</button></div></div>}
                     
-                    {showAddModal && <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4"><form onSubmit={handleAddItem} className="bg-white p-5 rounded-xl w-full max-w-xs shadow-2xl space-y-3"><div className="flex justify-between items-center"><h3 className="font-bold text-lg">Agregar</h3><button type="button" onClick={()=>setShowAddModal(false)}>{Icons.X}</button></div><input name="name" className="w-full border p-2 rounded" placeholder="Nombre" required autoFocus/><div className="flex gap-2"><input name="brand" className="w-full border p-2 rounded" placeholder="Marca"/><input name="price" type="number" className="w-full border p-2 rounded" placeholder="Precio"/></div><select name="cat" className="w-full border p-2 rounded"><option value="Varios">Varios</option>{['Almacén','Bebidas','Limpieza','Perfumería','Frescos'].map(c=><option key={c} value={c}>{c}</option>)}</select><button className="w-full bg-blue-600 text-white font-bold py-3 rounded">Guardar</button></form></div>}
+                    {showAddModal && <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4"><form onSubmit={handleAddItem} className="bg-white p-5 rounded-xl w-full max-w-xs shadow-2xl space-y-3"><div className="flex justify-between items-center"><h3 className="font-bold text-lg">Agregar</h3><button type="button" onClick={()=>setShowAddModal(false)}>{Icons.X()}</button></div><input name="name" className="w-full border p-2 rounded" placeholder="Nombre" required autoFocus/><div className="flex gap-2"><input name="brand" className="w-full border p-2 rounded" placeholder="Marca"/><input name="price" type="number" className="w-full border p-2 rounded" placeholder="Precio"/></div><select name="cat" className="w-full border p-2 rounded"><option value="Varios">Varios</option>{['Almacén','Bebidas','Limpieza','Perfumería','Frescos'].map(c=><option key={c} value={c}>{c}</option>)}</select><button className="w-full bg-blue-600 text-white font-bold py-3 rounded">Guardar</button></form></div>}
 
-                    {showInstallModal && <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-6 animate-fade-in" onClick={() => setShowInstallModal(false)}><div className="bg-white rounded-xl p-6 max-w-sm text-center shadow-2xl relative" onClick={e => e.stopPropagation()}><button onClick={() => setShowInstallModal(false)} className="absolute top-2 right-2 text-gray-400"><Icons.X size={20}/></button><h3 className="text-lg font-bold text-gray-800 mb-2">Instalar Nini App</h3><p className="text-sm text-gray-600 mb-4">Para instalar esta web como una App en tu iPhone:</p><div className="space-y-3 text-sm text-left bg-gray-50 p-4 rounded-lg"><div className="flex items-center gap-3"><Icons.Share className="text-blue-500"/> <span>1. Toca el botón <b>Compartir</b> abajo.</span></div><div className="flex items-center gap-3"><Icons.Plus className="text-gray-600 border border-gray-400 rounded p-0.5"/> <span>2. Elige <b>"Agregar a Inicio"</b>.</span></div></div></div></div>}
+                    {showInstallModal && <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-6 animate-fade-in" onClick={() => setShowInstallModal(false)}><div className="bg-white rounded-xl p-6 max-w-sm text-center shadow-2xl relative" onClick={e => e.stopPropagation()}><button onClick={() => setShowInstallModal(false)} className="absolute top-2 right-2 text-gray-400">{Icons.X()}</button><h3 className="text-lg font-bold text-gray-800 mb-2">Instalar Nini App</h3><p className="text-sm text-gray-600 mb-4">Para instalar esta web como una App en tu iPhone:</p><div className="space-y-3 text-sm text-left bg-gray-50 p-4 rounded-lg"><div className="flex items-center gap-3">{Icons.Share()} <span>1. Toca el botón <b>Compartir</b> abajo.</span></div><div className="flex items-center gap-3">{Icons.Plus()} <span>2. Elige <b>"Agregar a Inicio"</b>.</span></div></div></div></div>}
 
-                    {showExportModal && <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"><div className="bg-white rounded-xl shadow-xl w-full max-w-md flex flex-col max-h-[80vh]"><div className="p-4 border-b flex justify-between"><h3 className="font-bold">Copiar al Excel</h3><button onClick={() => setShowExportModal(false)}><Icons.X size={20}/></button></div><div className="p-4 flex-1 bg-gray-50"><textarea id="exportarea" readOnly value={exportContent} className="w-full h-32 p-2 text-xs border rounded mb-2" onClick={e => e.target.select()} /><button onClick={copyToClip} className="w-full py-2 bg-green-600 text-white font-bold rounded">COPIAR AHORA</button></div><div className="p-4 border-t"><button onClick={() => { setProducts(prev => prev.map(p => ({...p, actualQty:0}))); setShowExportModal(false); }} className="w-full py-2 text-blue-600 font-bold border border-blue-600 rounded">Limpiar Carrito</button></div></div></div>}
+                    {showExportModal && <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"><div className="bg-white rounded-xl shadow-xl w-full max-w-md flex flex-col max-h-[80vh]"><div className="p-4 border-b flex justify-between"><h3 className="font-bold">Copiar al Excel</h3><button onClick={() => setShowExportModal(false)}>{Icons.X()}</button></div><div className="p-4 flex-1 bg-gray-50"><textarea id="exportarea" readOnly value={exportContent} className="w-full h-32 p-2 text-xs border rounded mb-2" onClick={e => e.target.select()} /><button onClick={copyToClip} className="w-full py-2 bg-green-600 text-white font-bold rounded">COPIAR AHORA</button></div><div className="p-4 border-t"><button onClick={() => { setProducts(prev => prev.map(p => ({...p, actualQty:0}))); setShowExportModal(false); }} className="w-full py-2 text-blue-600 font-bold border border-blue-600 rounded">Limpiar Carrito</button></div></div></div>}
 
                     <div className="fixed bottom-0 w-full flex justify-around items-center pb-safe z-50 h-16 shadow-lg" style={{ backgroundColor: COLORS.blue }}>
-                        <button onClick={() => setView('list')} className={`flex flex-col items-center justify-center w-full h-full ${view === 'list' ? 'text-white' : 'text-white/50'}`}><Icons.List size={24} strokeWidth={2.5} /><span className="text-[10px] font-bold mt-1">Lista</span></button>
+                        <button onClick={() => setView('list')} className={`flex flex-col items-center justify-center w-full h-full ${view === 'list' ? 'text-white' : 'text-white/50'}`}>{Icons.List()}<span className="text-[10px] font-bold mt-1">Lista</span></button>
                         <div className="w-px h-8 bg-white/20"></div>
-                        <button onClick={() => setView('history')} className={`flex flex-col items-center justify-center w-full h-full ${view === 'history' ? 'text-white' : 'text-white/50'}`}><Icons.PieChart size={24} strokeWidth={2.5} /><span className="text-[10px] font-bold mt-1">Historial</span></button>
+                        <button onClick={() => setView('history')} className={`flex flex-col items-center justify-center w-full h-full ${view === 'history' ? 'text-white' : 'text-white/50'}`}>{Icons.PieChart()}<span className="text-[10px] font-bold mt-1">Historial</span></button>
                     </div>
 
                     {statusMsg && <div className="fixed top-24 left-1/2 -translate-x-1/2 bg-black/80 text-white text-xs px-4 py-2 rounded-full shadow-lg z-50">{statusMsg}</div>}
@@ -441,6 +388,7 @@
             );
         }
 
+        // --- LIST VIEW ---
         const ListView = ({ products, onUpdate, onAdd, onClear, filter, setFilter, brandFilter, setBrandFilter, showBrandFilter, setShowBrandFilter, searchTerm, setSearchTerm, isLocked, setIsLocked, showAdd, setShowAdd, handleQty }) => {
             const cats = ['Todos', ...new Set(products.map(p => p.category || 'Varios'))].sort();
             const brands = ['Todas', ...new Set(products.filter(p => filter === 'Todos' || p.category === filter).map(p => p.brand || 'Genérico'))].sort();
@@ -451,13 +399,13 @@
                     <div className="bg-white p-3 border-b flex flex-col gap-3">
                         <AdBanner />
                         <div className="flex gap-2">
-                             <button onClick={() => setIsLocked(!isLocked)} className={`w-10 h-10 flex items-center justify-center rounded-lg border ${isLocked ? 'bg-orange-50 text-orange-600 border-orange-200' : 'bg-gray-50 text-gray-500'}`}>{isLocked ? Icons.Lock : Icons.Unlock}</button>
+                             <button onClick={() => setIsLocked(!isLocked)} className={`w-10 h-10 flex items-center justify-center rounded-lg border ${isLocked ? 'bg-orange-50 text-orange-600 border-orange-200' : 'bg-gray-50 text-gray-500'}`}>{isLocked ? Icons.Lock() : Icons.Unlock()}</button>
                              <div className="relative flex-1 flex gap-2">
-                                <div className="relative flex-1"><span className="absolute left-3 top-2 text-gray-400">{Icons.Search}</span><input className="w-full h-10 pl-9 pr-3 rounded-lg border bg-gray-50 focus:bg-white outline-none text-sm" placeholder="Buscar..." onChange={e=>setSearchTerm(e.target.value)}/></div>
+                                <div className="relative flex-1"><span className="absolute left-3 top-2 text-gray-400">{Icons.Search()}</span><input className="w-full h-10 pl-9 pr-3 rounded-lg border bg-gray-50 focus:bg-white outline-none text-sm" placeholder="Buscar..." onChange={e=>setSearchTerm(e.target.value)}/></div>
                                 <button onClick={()=>setShowAdd(true)} className="bg-blue-600 text-white w-10 rounded flex items-center justify-center shadow"><Icons.Plus/></button>
                              </div>
-                             <button onClick={() => setShowBrandFilter(!showBrandFilter)} className={`w-10 h-10 rounded-lg border flex items-center justify-center ${showBrandFilter ? 'bg-blue-100 text-blue-700' : 'text-gray-400'}`}>{Icons.Filter}</button>
-                             <button onClick={onClear} className="w-10 h-10 text-gray-400 hover:text-red-500 flex items-center justify-center">{Icons.Trash}</button>
+                             <button onClick={() => setShowBrandFilter(!showBrandFilter)} className={`w-10 h-10 rounded-lg border flex items-center justify-center ${showBrandFilter ? 'bg-blue-100 text-blue-700' : 'text-gray-400'}`}>{Icons.Filter()}</button>
+                             <button onClick={onClear} className="w-10 h-10 text-gray-400 hover:text-red-500 flex items-center justify-center">{Icons.Trash()}</button>
                         </div>
                         {showBrandFilter && <div className="px-3 py-2 bg-blue-50 rounded border border-blue-100"><div className="text-[10px] font-bold text-blue-800 mb-1 uppercase">Marca</div><select value={brandFilter} onChange={e => setBrandFilter(e.target.value)} className="w-full p-2 text-sm border rounded"><option value="Todas">Todas</option>{brands.map(b => <option key={b} value={b}>{b}</option>)}</select></div>}
                         <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">{cats.map(c => (<button key={c} onClick={() => setFilter(c)} className={`px-3 py-1 rounded-full text-xs font-bold whitespace-nowrap transition-colors ${filter === c ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600'}`}>{c}</button>))}</div>
@@ -483,6 +431,7 @@
                                 </div>
                             </div>
                         ))}
+                        {filtered.length===0 && <div className="p-10 text-center text-gray-400">Sin productos.</div>}
                     </div>
                 </div>
             );
@@ -509,9 +458,9 @@
             }, [history, filterDate]);
 
             const monthlyData = useMemo(() => {
-                const months = Array.from({length: 12}, (_, i) => ({ label: new Date(2024, i, 1).toLocaleString('es-AR', { month: 'short' }).toUpperCase(), total: 0 }));
-                history.forEach(h => { const d = new Date(h.date); if(!isNaN(d)) months[d.getMonth()].total += h.total; });
-                return months;
+                const arr = Array(12).fill(0);
+                history.forEach(h => { const d = new Date(h.date); if(!isNaN(d)) arr[d.getMonth()] += h.total; });
+                return arr.map((t,i) => ({ label: new Date(2024, i, 1).toLocaleString('es-AR', {month:'short'}).toUpperCase(), total: t }));
             }, [history]);
             
             const max = Math.max(...monthlyData.map(m=>m.total), 1);
@@ -521,7 +470,7 @@
             return (
                 <div className="p-4 space-y-6 pb-24">
                     <div className="bg-white rounded-xl shadow border p-4">
-                        <div className="flex justify-between mb-4"><h3 className="font-bold text-gray-700 flex gap-2 text-blue-600">{Icons.Pie} Gasto Rubro</h3>
+                        <div className="flex justify-between mb-4"><h3 className="font-bold text-gray-700 flex gap-2 text-blue-600">{Icons.PieChart()} Gasto Rubro</h3>
                         <div className="relative"><select onChange={e=>setFilterDate(e.target.value)} className="text-xs border rounded bg-gray-50"><option value="all">Todo el Año</option>{availableMonths.map(m=><option key={m.value} value={m.value}>{m.label}</option>)}</select></div></div>
                         <div className="flex items-center gap-4"><div className="w-32 h-32 rounded-full flex items-center justify-center flex-col shadow-inner" style={{background: `conic-gradient(${pieGrad})`}}><div className="bg-white w-24 h-24 rounded-full flex flex-col items-center justify-center shadow-sm"><span className="text-[9px] text-gray-400">TOTAL</span><span className="text-xs font-bold">${Math.round(pieData.reduce((a,b)=>a+b.value,0)).toLocaleString('es-AR')}</span></div></div><div className="flex-1 space-y-1">{pieData.slice(0,5).map((c,i)=>(<div key={i} className="flex justify-between text-xs"><span>{c.name}</span><span className="font-bold">{Math.round(c.percent)}%</span></div>))}</div></div>
                     </div>
@@ -535,7 +484,7 @@
                             <div key={h.id} className="border-b last:border-0">
                                 <div onClick={()=>setExpandedId(expandedId===h.id?null:h.id)} className="px-4 py-3 flex justify-between items-center hover:bg-gray-50 cursor-pointer">
                                     <div><div className="font-bold text-sm">{new Date(h.date).toLocaleDateString('es-AR')}</div><div className="text-xs text-gray-400">{h.items.length} items</div></div>
-                                    <div className="flex items-center gap-2"><span className="font-bold text-blue-600">${h.total.toLocaleString('es-AR')}</span>{Icons.ChevronDown}</div>
+                                    <div className="flex items-center gap-2"><span className="font-bold text-blue-600">${h.total.toLocaleString('es-AR')}</span>{Icons.ChevronDown()}</div>
                                 </div>
                                 {expandedId === h.id && <div className="bg-gray-50 p-3 text-xs border-t">{h.items.map((i,x)=><div key={x} className="flex justify-between mb-1 pb-1 border-b border-dashed last:border-0 pb-1"><span>{i.actualQty}x {i.name}</span><span>${i.price}</span></div>)}</div>}
                             </div>
