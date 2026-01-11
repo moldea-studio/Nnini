@@ -70,7 +70,7 @@
             { id: '101', name: 'Cargando...', brand: '...', category: 'General', price: 0, plannedQty: 0, actualQty: 0 },
         ];
 
-        // --- ICONOS INTEGRADOS (CORREGIDOS) ---
+        // --- ICONOS INTEGRADOS ---
         const Icon = ({ path, size = 24, className = "", fill="none" }) => (
             <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill={fill} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
                 {path}
@@ -96,12 +96,11 @@
             ChevronUp: (p) => <Icon {...p} path={<path d="m18 15-6-6-6 6"/>} />,
             Download: (p) => <Icon {...p} path={<><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></>} />,
             Share: (p) => <Icon {...p} path={<><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" x2="12" y1="2" y2="15"/></>} />,
-            AlertTriangle: (p) => <Icon {...p} path={<><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></>} />,
-            // LOS ICONOS QUE FALTABAN:
             User: (p) => <Icon {...p} path={<><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></>} />,
-            Google: (p) => <Icon {...p} fill="currentColor" path={<path d="M12.48 10.92v3.28h7.84c-.24 1.84-.853 3.187-1.787 4.133-1.147 1.147-2.933 2.4-6.053 2.4-4.827 0-8.6-3.893-8.6-8.72s3.773-8.72 8.6-8.72c2.6 0 4.507 1.027 5.907 2.347l2.307-2.307C18.747 1.44 16.133 0 12.48 0 5.867 0 .533 5.333.533 12S5.867 24 12.48 24c3.44 0 6.013-1.133 8.053-3.24 2.067-2.067 2.693-5.067 2.693-7.56 0-.747-.053-1.467-.147-2.147H12.48z"/>} />,
+            LogOut: (p) => <Icon {...p} path={<><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></>} />,
+            AlertTriangle: (p) => <Icon {...p} path={<><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></>} />,
             Settings: (p) => <Icon {...p} path={<><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.09a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></>} />,
-            LogOut: (p) => <Icon {...p} path={<><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></>} />
+            Google: (p) => <Icon {...p} fill="currentColor" path={<path d="M12.48 10.92v3.28h7.84c-.24 1.84-.853 3.187-1.787 4.133-1.147 1.147-2.933 2.4-6.053 2.4-4.827 0-8.6-3.893-8.6-8.72s3.773-8.72 8.6-8.72c2.6 0 4.507 1.027 5.907 2.347l2.307-2.307C18.747 1.44 16.133 0 12.48 0 5.867 0 .533 5.333.533 12S5.867 24 12.48 24c3.44 0 6.013-1.133 8.053-3.24 2.067-2.067 2.693-5.067 2.693-7.56 0-.747-.053-1.467-.147-2.147H12.48z"/>} />
         };
 
         // --- ERROR BOUNDARY ---
@@ -209,6 +208,7 @@
                 if(!user || !fb || isDemoMode) return;
                 const { db, onSnapshot, collection, orderBy, query } = window.FirebaseSDK;
                 
+                // Productos
                 const prodRef = collection(db, `users/${user.uid}/products`);
                 const unsubProd = onSnapshot(prodRef, (snap) => {
                     const items = snap.docs.map(d => ({id: d.id, ...d.data()}));
@@ -218,6 +218,7 @@
                     enableDemoMode();
                 });
 
+                // Historial
                 const histRef = query(collection(db, `users/${user.uid}/history`), orderBy("date", "desc"));
                 const unsubHist = onSnapshot(histRef, (snap) => {
                     const items = snap.docs.map(d => ({id: d.id, ...d.data()}));
@@ -255,7 +256,7 @@
                     await fb.signInWithPopup(fb.auth, provider);
                 } catch(e) {
                     console.error("Error login:", e);
-                    alert("No se pudo conectar con Google (Bloqueo del navegador). Se activará el Modo Prueba Local.");
+                    alert("No se pudo conectar con Google (Bloqueo del navegador o dominio no autorizado). Se activará el Modo Prueba Local.");
                     enableDemoMode();
                 } finally {
                     setIsLoggingIn(false);
@@ -276,6 +277,7 @@
             };
 
             const handleUpdateProduct = async (id, data) => {
+                // Update local optimistic
                 setProducts(prev => prev.map(p => p.id === id ? { ...p, ...data } : p));
                 
                 if (user && fb && !isDemoMode) {
@@ -299,11 +301,60 @@
                 }
             };
 
+            // IMPORTADOR
             const handleImportSheet = async () => {
                 if(!confirm("Esto importará los productos del Google Sheet a tu App. ¿Seguro?")) return;
                 setStatusMsg('Importando...');
                 setShowSettings(false);
-                fetchProductsFromSheet(); 
+                
+                const cleanCSVValue = (text) => (typeof text === 'string' ? text.replace(/^"|"$/g, '').replace('$', '').trim() : "");
+                const parseNumberAR = (str) => {
+                    if (!str) return 0;
+                    if (typeof str === 'number') return str;
+                    try {
+                        const strVal = String(str);
+                        if (strVal.includes('.') && !strVal.includes(',')) return parseFloat(strVal) || 0;
+                        return parseFloat(strVal.replace(/\./g, '').replace(',', '.')) || 0;
+                    } catch (e) { return 0; }
+                };
+
+                try {
+                    const res = await fetch(OLD_SHEET_URL);
+                    const txt = await res.text();
+                    if(txt.includes('<html')) throw new Error("Sheet privado");
+                    
+                    const lines = txt.split('\n').slice(1);
+                    const { db, collection, writeBatch, doc } = window.FirebaseSDK;
+                    
+                    let batch = writeBatch(db);
+                    let count = 0;
+                    
+                    lines.forEach(l => {
+                        const c = l.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(cleanCSVValue);
+                        if(c.length < 2) return;
+                        const name = c[1];
+                        if(!name) return;
+
+                        const newRef = doc(collection(db, `users/${user.uid}/products`));
+                        batch.set(newRef, {
+                            name,
+                            brand: c[2] || 'Genérico',
+                            category: c[3] || 'Varios',
+                            price: parseNumberAR(c[4]),
+                            plannedQty: 0,
+                            actualQty: 0
+                        });
+                        count++;
+                        if(count % 400 === 0) { batch.commit(); batch = writeBatch(db); }
+                    });
+                    
+                    await batch.commit();
+                    setStatusMsg('¡Importación exitosa!');
+                    setTimeout(() => setStatusMsg(''), 3000);
+                } catch(e) {
+                    alert("Error: " + e.message);
+                    setStatusMsg('');
+                }
             };
             
             const handleCleanDB = async () => {
