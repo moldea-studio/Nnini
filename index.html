@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Nini Cloud</title>
+    <title>Nini Cloud App</title>
     
     <!-- PWA -->
     <meta name="theme-color" content="#ffffff">
@@ -206,7 +206,8 @@
             // 2. ESCUCHAR DATOS (REALTIME)
             useEffect(() => {
                 if(!user || !fb || isDemoMode) return;
-                const { db, onSnapshot, collection, orderBy, query } = window.FirebaseSDK;
+                const { onSnapshot, collection, orderBy, query } = window.FirebaseSDK;
+                const db = fb.db; // FIX: Usar la instancia DB correcta
                 
                 // Productos
                 const prodRef = collection(db, `users/${user.uid}/products`);
@@ -277,11 +278,11 @@
             };
 
             const handleUpdateProduct = async (id, data) => {
-                // Update local optimistic
                 setProducts(prev => prev.map(p => p.id === id ? { ...p, ...data } : p));
                 
                 if (user && fb && !isDemoMode) {
-                    const { db, doc, updateDoc } = window.FirebaseSDK;
+                    const { doc, updateDoc } = window.FirebaseSDK;
+                    const db = fb.db; // FIX: Usar instancia
                     try {
                         const ref = doc(db, `users/${user.uid}/products`, id);
                         await updateDoc(ref, data);
@@ -293,7 +294,8 @@
                 setProducts(prev => [newItem, ...prev]);
 
                 if (user && fb && !isDemoMode) {
-                    const { db, collection, addDoc } = window.FirebaseSDK;
+                    const { collection, addDoc } = window.FirebaseSDK;
+                    const db = fb.db; // FIX: Usar instancia
                     try {
                         const ref = collection(db, `users/${user.uid}/products`);
                         await addDoc(ref, newItem);
@@ -301,7 +303,6 @@
                 }
             };
 
-            // IMPORTADOR
             const handleImportSheet = async () => {
                 if(!confirm("Esto importará los productos del Google Sheet a tu App. ¿Seguro?")) return;
                 setStatusMsg('Importando...');
@@ -324,7 +325,8 @@
                     if(txt.includes('<html')) throw new Error("Sheet privado");
                     
                     const lines = txt.split('\n').slice(1);
-                    const { db, collection, writeBatch, doc } = window.FirebaseSDK;
+                    const { collection, writeBatch, doc } = window.FirebaseSDK;
+                    const db = fb.db; // FIX: Usar instancia
                     
                     let batch = writeBatch(db);
                     let count = 0;
@@ -361,7 +363,8 @@
                 if(!confirm("PELIGRO: Esto borrará todos tus productos. ¿Continuar?")) return;
                 setProducts([]);
                 if(!isDemoMode) {
-                     const { db, collection, getDocs, deleteDoc, doc } = window.FirebaseSDK;
+                     const { collection, getDocs, deleteDoc, doc } = window.FirebaseSDK;
+                     const db = fb.db; // FIX
                      const snap = await getDocs(collection(db, `users/${user.uid}/products`));
                      snap.forEach(d => deleteDoc(doc(db, `users/${user.uid}/products`, d.id)));
                 }
@@ -409,7 +412,8 @@
                         setTimeout(() => setStatusMsg(''), 3000);
                         
                         if (!isDemoMode && fb && user) {
-                            const { db, collection, writeBatch, doc } = window.FirebaseSDK;
+                            const { collection, writeBatch, doc } = window.FirebaseSDK;
+                            const db = fb.db; // FIX
                             const batch = writeBatch(db);
                             newProds.forEach(p => {
                                 const ref = doc(collection(db, `users/${user.uid}/products`));
@@ -440,7 +444,8 @@
                 setHistory(prev => [historyItem, ...prev]);
                 
                 if (user && fb && !isDemoMode) {
-                    const { db, collection, addDoc, doc, updateDoc } = window.FirebaseSDK;
+                    const { collection, addDoc, doc, updateDoc } = window.FirebaseSDK;
+                    const db = fb.db; // FIX
                     await addDoc(collection(db, `users/${user.uid}/history`), historyItem);
                     boughtItems.forEach(p => {
                         const ref = doc(db, `users/${user.uid}/products`, p.id);
