@@ -9,38 +9,23 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <link rel="apple-touch-icon" href="https://i.imgur.com/23tlEnQ.jpeg">
-    <link rel="manifest" href="data:application/manifest+json;base64,ewogICJuYW1lIjogIk5pbmkgQ2xvdWQiLAogICJzaG9ydF9uYW1lIjogIk5pbmkiLAogICJzdGFydF91cmwiOiAiLiIsCiAgImRpc3BsYXkiOiAic3RhbmRhbG9uZSIsCiAgImJhY2tncm91bmRfY29sb3IiOiAiI2ZmZmZmZiIsCiAgInRoZW1lX2NvbG9yIjogIiNmZmZmZmYiLAogICJpY29ucyI6IFsKICAgIHsKICAgICAgInNyYyI6ICJodHRwczovL2kuaW1ndXIuY29tLzIzdGxFblEuanBlZyIsCiAgICAgICJzaXplcyI6ICI1MTJ4NTEyIiwKICAgICAgInR5cGUiOiAiaW1hZ2UvanBlZyIKICAgIH0KICBdCn0=">
+    <link rel="manifest" href="data:application/manifest+json;base64,ewogICJuYW1lIjogIk5pbmkgQ2xvdWQiLAogICJzaG9ydF9uYW1lIjogIk5pbmkiLAogICJzdGFydF91cmwiOiAiLiIsCiAgImRpc3BsYXkiOiAic3RhbmRhbG9uZSIsCiAgImJhY2tncm91bmRfY29sb3IiOiAiI2ZmZmZmZiIsCiAgInRoZW1lX2NvbG9yIjogIiMwMDRhYWQiLAogICJpY29ucyI6IFsKICAgIHsKICAgICAgInNyYyI6ICJodHRwczovL2kuaW1ndXIuY29tLzIzdGxFblEuanBlZyIsCiAgICAgICJzaXplcyI6ICI1MTJ4NTEyIiwKICAgICAgInR5cGUiOiAiaW1hZ2UvanBlZyIKICAgIH0KICBdCn0=">
 
-    <script>
-        window.onerror = function(msg, url, line, col, error) {
-            const root = document.getElementById('root');
-            if(root && !document.getElementById('error-screen')) {
-                root.innerHTML = `
-                    <div id="error-screen" style="height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:20px; font-family:sans-serif; text-align:center; background:#fff5f5;">
-                        <h2 style="color:#e31d2b; font-weight:bold; margin-bottom:10px;">¡Ups! Error Crítico</h2>
-                        <div style="background:white; border:1px solid #ffcccc; padding:15px; border-radius:8px; font-size:12px; color:#c00; margin-bottom:20px; max-width:100%; word-break:break-all; text-align:left;">
-                            <strong>${msg}</strong><br>Línea: ${line}
-                        </div>
-                        <button onclick="localStorage.clear(); window.location.reload()" style="background:#004aad; color:white; border:none; padding:12px 24px; border-radius:8px; font-weight:bold; font-size:14px; cursor:pointer; width:100%;">
-                            REINICIAR APP
-                        </button>
-                    </div>
-                `;
-            }
-        };
-    </script>
-
+    <!-- ESTILOS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- REACT -->
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     
+    <!-- FIREBASE (Compat Mode) -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 
     <style>
-        body { -webkit-tap-highlight-color: transparent; user-select: none; font-family: -apple-system, sans-serif; }
+        body { -webkit-tap-highlight-color: transparent; user-select: none; font-family: system-ui, -apple-system, sans-serif; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         input, select { font-size: 16px; }
         .loader { width:30px; height:30px; border:3px solid #eee; border-top-color:#004aad; border-radius:50%; animation:spin 1s infinite linear; }
@@ -49,7 +34,7 @@
 </head>
 <body class="bg-gray-50 text-gray-800">
     <div id="root">
-        <div style="height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center;">
+        <div style="height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; color:#004aad;">
             <div class="loader"></div>
         </div>
     </div>
@@ -57,7 +42,7 @@
     <script type="text/babel">
         const { useState, useEffect, useMemo } = React;
 
-        // --- CONFIG ---
+        // --- CONFIGURACIÓN ---
         const firebaseConfig = {
           apiKey: "AIzaSyD1XQbCn5DjBr6mSJ2LyAihW6_pRpcMdLs",
           authDomain: "nini-app-61a6a.firebaseapp.com",
@@ -66,12 +51,12 @@
           messagingSenderId: "1019944365082",
           appId: "1:1019944365082:web:3e921a4207a846306235a3"
         };
-
+        const ADMIN_EMAIL = "worlddigital2011@gmail.com";
         const SHEET_ID = "1Yz_Br2J41diPtd-PL8lLE_Q8eQex-Vf7ifkIqdEqQEQ";
         const LINK_HOJA_PRODUCTOS_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=LINK_HOJA_PRODUCTOS`; 
         const LINK_HOJA_HISTORIAL_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=LINK_HOJA_HISTORIAL`;
-        const ADMIN_EMAIL = "worlddigital2011@gmail.com";
 
+        // INICIALIZAR FIREBASE
         if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const db = firebase.firestore();
@@ -82,7 +67,7 @@
             pie: ['#93C5FD', '#FCA5A5', '#86EFAC', '#FDE047', '#D8B4FE', '#F9A8D4', '#67E8F9']
         };
 
-        // --- ICONOS ---
+        // --- ICONOS CORREGIDOS (Componentes reales) ---
         const Icon = ({ p, size=24, className="", ...rest }) => (
             <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} {...rest}>
                 {p}
@@ -118,21 +103,42 @@
             { id: '101', name: 'Cargando...', brand: '...', category: 'General', price: 0, plannedQty: 0, actualQty: 0 },
         ];
 
+        // --- ERROR BOUNDARY ---
         class ErrorBoundary extends React.Component {
             constructor(props) { super(props); this.state = { hasError: false, error: null }; }
             static getDerivedStateFromError(error) { return { hasError: true, error }; }
+            
+            // Función segura de copiado (sin clipboard API directo)
+            safeCopy = () => {
+                const el = document.createElement('textarea');
+                el.value = this.state.error?.toString() || 'Error';
+                document.body.appendChild(el);
+                el.select();
+                document.execCommand('copy');
+                document.body.removeChild(el);
+                alert("Error copiado");
+            }
+
             render() {
-                if (this.state.hasError) return <div className="p-10 text-center"><Icons.Alert className="mx-auto text-red-500 mb-2"/><h2 className="font-bold">Error</h2><p className="text-xs text-gray-500 mb-4">{this.state.error?.message}</p><button onClick={()=>{localStorage.clear(); window.location.reload()}} className="bg-red-500 text-white px-4 py-2 rounded">Reiniciar</button></div>;
+                if (this.state.hasError) return (
+                    <div className="flex flex-col items-center justify-center h-screen p-6 text-center bg-gray-50">
+                        <Icons.Alert className="text-red-500 w-12 h-12 mx-auto mb-4" />
+                        <h2 className="text-xl font-bold text-gray-800 mb-2">Algo salió mal</h2>
+                        <p className="text-xs text-red-600 mb-4 font-mono bg-red-50 p-2 rounded">{this.state.error?.toString()}</p>
+                        <button onClick={this.safeCopy} className="bg-blue-600 text-white px-4 py-2 rounded font-bold mb-2">COPIAR ERROR</button>
+                        <button onClick={()=>{localStorage.clear(); window.location.reload()}} className="bg-gray-200 text-gray-700 px-4 py-2 rounded font-bold">REINICIAR</button>
+                    </div>
+                );
                 return this.props.children;
             }
         }
 
-        const AdBanner = () => <div className="bg-white border-b border-gray-100 py-3 px-4 flex justify-center"><div className="w-full max-w-sm h-12 bg-gray-100 rounded border border-dashed border-gray-300 flex items-center justify-center text-xs text-gray-400">ESPACIO PUBLICIDAD (ADS)</div></div>;
+        const AdBanner = () => <div className="bg-white border-b border-gray-100 py-3 px-4 flex justify-center"><div className="w-full max-w-sm h-12 bg-gray-100 rounded border border-dashed border-gray-300 flex items-center justify-center text-xs text-gray-400">ESPACIO PUBLICITARIO (ADS)</div></div>;
 
         function App() {
             const [user, setUser] = useState(null);
             const [view, setView] = useState('login'); 
-            const [products, setProducts] = useState(INITIAL_PRODUCTS);
+            const [products, setProducts] = useState([]);
             const [history, setHistory] = useState([]);
             const [loading, setLoading] = useState(true);
             const [statusMsg, setStatusMsg] = useState('');
@@ -140,11 +146,12 @@
             const [isDemo, setIsDemo] = useState(false);
             const [isLoggingIn, setIsLoggingIn] = useState(false);
 
+            // Filtros UI
             const [filter, setFilter] = useState('Todos'); 
             const [brandFilter, setBrandFilter] = useState('Todas');
             const [showBrandFilter, setShowBrandFilter] = useState(false);
             const [searchTerm, setSearchTerm] = useState('');
-            const [isLocked, setIsLocked] = useState(() => localStorage.getItem('nini_lock') === 'true');
+            const [isLocked, setIsLocked] = useState(false);
             const [showAddModal, setShowAddModal] = useState(false);
             const [showExportModal, setShowExportModal] = useState(false);
             const [exportContent, setExportContent] = useState('');
@@ -154,16 +161,17 @@
             const isAdmin = user && user.email === ADMIN_EMAIL;
 
             useEffect(() => {
-                auth.onAuthStateChanged(u => {
+                const unsub = auth.onAuthStateChanged(u => {
                     setUser(u); setLoading(false);
                     if(u) setView('list'); else setView('login');
                 });
+                return () => unsub();
             }, []);
 
             useEffect(() => {
                 if(!user || isDemo) return;
                 
-                const prodRef = db.collection('users').doc(user.uid).collection('products');
+                const prodRef = db.collection(`users/${user.uid}/products`);
                 const unsubProd = prodRef.onSnapshot(snap => {
                     if(snap.empty && !localStorage.getItem('imported_'+user.uid)) {
                         setStatusMsg("Cargando catálogo...");
@@ -178,7 +186,7 @@
                     enableDemo();
                 });
 
-                const histRef = db.collection('users').doc(user.uid).collection('history').orderBy("date", "desc");
+                const histRef = db.collection(`users/${user.uid}/history`).orderBy("date", "desc");
                 const unsubHist = histRef.onSnapshot(snap => {
                     setHistory(snap.docs.map(d => ({id: d.id, ...d.data()})));
                 });
@@ -186,8 +194,6 @@
                 return () => { unsubProd(); unsubHist(); };
             }, [user]);
 
-            useEffect(() => localStorage.setItem('nini_lock', isLocked), [isLocked]);
-            
             useEffect(() => {
                 const handler = (e) => { e.preventDefault(); setDeferredPrompt(e); };
                 window.addEventListener('beforeinstallprompt', handler);
@@ -201,30 +207,44 @@
                 } else { setShowInstallModal(true); }
             };
 
+            const enableDemo = () => {
+                setIsDemo(true); setUser({ uid: 'demo', isAnonymous: true }); setLoading(false); setView('list');
+                setProducts([{id:'1', name:'Producto Demo', price:100, actualQty:0, plannedQty:0, brand:'Genérico', category:'Varios'}]);
+            };
+
             const handleLogin = async () => {
                 if(isLoggingIn) return; setIsLoggingIn(true);
                 try {
                     const provider = new firebase.auth.GoogleAuthProvider();
                     await auth.signInWithPopup(provider);
                 } catch(e) { 
-                    console.error("Error login:", e);
-                    alert("No se pudo conectar con Google. Prueba 'Invitado'.");
-                    enableDemo();
+                    alert("Error Google Login: " + e.message + " (Revisa Dominios Autorizados)");
+                    enableDemo(); 
                 } finally { setIsLoggingIn(false); }
             };
             const handleAnon = async () => {
-                try { await auth.signInAnonymously(); } catch(e) { alert("Error: "+e.message); }
+                try { await auth.signInAnonymously(); } catch(e) { alert(e.message); }
             };
             const handleLogout = () => auth.signOut().then(()=>window.location.reload());
 
-            const handleUpdateProduct = (id, data) => {
-                setProducts(prev => prev.map(p => p.id === id ? { ...p, ...data } : p));
-                if(user && !isDemo) db.collection('users').doc(user.uid).collection('products').doc(id).update(data);
+            const updateProd = (id, data) => {
+                setProducts(p => p.map(i => i.id === id ? {...i, ...data} : i));
+                if(user && !isDemo) db.collection(`users/${user.uid}/products`).doc(id).update(data);
             };
-
-            const handleAddProduct = (item) => {
-                setProducts(prev => [item, ...prev]);
-                if(user && !isDemo) db.collection('users').doc(user.uid).collection('products').add(item);
+            const addProd = (item) => {
+                setProducts(p => [item, ...p]);
+                if(user && !isDemo) db.collection(`users/${user.uid}/products`).add(item);
+            };
+            const cleanDB = async () => {
+                if(!confirm("¿Borrar todo?")) return;
+                setProducts([]);
+                if(!isDemo) {
+                     const snap = await db.collection(`users/${user.uid}/products`).get();
+                     const batch = db.batch();
+                     snap.forEach(d => batch.delete(d.ref));
+                     await batch.commit();
+                     localStorage.removeItem('imported_'+user.uid);
+                }
             };
 
             const autoImport = async (uid) => {
@@ -233,43 +253,45 @@
                     const txtP = await resP.text();
                     if(txtP.includes('<html')) return;
                     const linesP = txtP.split('\n').slice(1);
-                    
                     const batch = db.batch();
-                    const prodRef = db.collection('users').doc(uid).collection('products');
+                    const clean = t => (t||'').replace(/^"|"$/g,'').trim();
+                    const num = s => parseFloat((s||'0').replace(/\./g,'').replace(',','.'))||0;
                     
-                    const clean = t => (typeof t==='string' ? t.replace(/^"|"$/g,'').trim() : "");
-                    const num = s => parseFloat(String(s).replace(/\./g,'').replace(',','.')) || 0;
-                    
-                    let count = 0;
+                    let c=0;
                     linesP.forEach(l => {
-                        const c = l.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(clean);
-                        if(c.length<2 || !c[1]) return;
-                        const ref = prodRef.doc();
-                        batch.set(ref, { name: c[1], brand: c[2]||'-', category: c[3]||'Varios', price: num(c[4]), plannedQty: 0, actualQty: 0 });
-                        count++;
-                        if(count % 450 === 0) { batch.commit(); }
+                        const cols = l.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(clean);
+                        if(cols.length < 2) return;
+                        const ref = db.collection(`users/${uid}/products`).doc();
+                        batch.set(ref, { 
+                            name: cols[1], brand: cols[2]||'-', category: cols[3]||'Varios', 
+                            price: num(cols[4]), plannedQty: 0, actualQty: 0 
+                        });
+                        c++;
+                        if(c%450===0) batch.commit();
                     });
+                    await batch.commit();
                     
                     const resH = await fetch(LINK_HOJA_HISTORIAL_URL);
                     const txtH = await resH.text();
                     const linesH = txtH.split('\n').slice(1);
                     const groups = {};
                     linesH.forEach(l => {
-                        const c = l.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(clean);
-                        if(c.length<6 || !c[0]) return;
-                        if(!groups[c[0]]) groups[c[0]] = { total: 0, items: [] };
-                        const qty = num(c[4]); const price = num(c[5]);
-                        groups[c[0]].items.push({ name: c[1], brand: c[2], category: c[3]||'Varios', actualQty: qty, price });
-                        groups[c[0]].total += qty * price;
+                        const cols = l.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(clean);
+                        if(cols.length < 6 || !cols[0]) return;
+                        const d = cols[0];
+                        if(!groups[d]) groups[d] = { total:0, items:[] };
+                        const qty = num(cols[4]); const pr = num(cols[5]);
+                        groups[d].items.push({ name: cols[1], brand: cols[2], category: cols[3]||'Varios', actualQty: qty, price: pr });
+                        groups[d].total += qty * pr;
                     });
-                    
+                    const batchH = db.batch();
                     Object.keys(groups).forEach(d => {
                         let iso = new Date().toISOString();
-                        if(d.includes('/')) { const [dd,mm,yy] = d.split('/'); iso = new Date(`${yy.length===2?'20'+yy:yy}-${mm.padStart(2,'0')}-${dd.padStart(2,'0')}T12:00:00`).toISOString(); }
-                        const ref = db.collection('users').doc(uid).collection('history').doc();
-                        batch.set(ref, { date: iso, displayDate: d, total: groups[d].total, items: groups[d].items });
+                        if(d.includes('/')) { const [dd,mm,yy] = d.split('/'); iso = new Date(`20${yy}-${mm}-${dd}T12:00:00`).toISOString(); }
+                        const ref = db.collection(`users/${uid}/history`).doc();
+                        batchH.set(ref, { date: iso, displayDate: d, total: groups[d].total, items: groups[d].items });
                     });
-                    await batch.commit();
+                    await batchH.commit();
                     setStatusMsg('');
                 } catch(e) { console.error(e); setStatusMsg(''); }
             };
@@ -279,31 +301,21 @@
                  setStatusMsg("Importando..."); setShowSettings(false);
                  await autoImport(user.uid);
             };
-            const handleCleanDB = async () => {
-                if(!confirm("¿Borrar todo?")) return;
-                setProducts([]);
-                if(!isDemo) {
-                     const snap = await db.collection('users').doc(user.uid).collection('products').get();
-                     const batch = db.batch();
-                     snap.forEach(d => batch.delete(d.ref));
-                     await batch.commit();
-                     localStorage.removeItem('imported_'+user.uid);
-                }
-            };
 
-            const handleFinishPurchase = async () => {
-                const bought = products.filter(p => p.actualQty > 0);
+            const finishPurchase = async () => {
+                const bought = products.filter(p=>p.actualQty>0);
                 if(bought.length===0) return alert("Vacío");
-                if(!confirm("¿Guardar?")) return;
+                if(!confirm("¿Finalizar?")) return;
                 
                 if(user && !isDemo) {
                     const batch = db.batch();
-                    const ref = db.collection('users').doc(user.uid).collection('history').doc();
-                    batch.set(ref, { date: new Date().toISOString(), total: bought.reduce((a,b)=>a+(b.price*b.actualQty),0), items: bought });
-                    bought.forEach(p => {
-                        const pr = db.collection('users').doc(user.uid).collection('products').doc(p.id);
-                        batch.update(pr, { actualQty: 0 });
+                    const hRef = db.collection(`users/${user.uid}/history`).doc();
+                    batch.set(hRef, {
+                        date: new Date().toISOString(),
+                        total: bought.reduce((a,b)=>a+(b.price*b.actualQty),0),
+                        items: bought
                     });
+                    bought.forEach(p => batch.update(db.collection(`users/${user.uid}/products`).doc(p.id), {actualQty:0}));
                     await batch.commit();
                 }
                 setProducts(p => p.map(i => ({...i, actualQty:0})));
@@ -312,31 +324,23 @@
 
             const handleQty = (id, d, field) => {
                 if(field === 'plannedQty' && isLocked) return;
-                // FIX: Usamos handleUpdateProduct para la lógica unificada
-                const p = products.find(p => p.id === id);
-                if(p) handleUpdateProduct(id, { [field]: Math.max(0, (p[field]||0) + d) });
+                setProducts(prev => prev.map(p => p.id === id ? { ...p, [field]: Math.max(0, p[field] + d) } : p));
+                if (user && !isDemo) {
+                    const p = products.find(p => p.id === id);
+                    if(p) updateProd(id, { [field]: Math.max(0, (p[field]||0) + d) });
+                }
             };
 
             const handleAddItem = (e) => {
                 e.preventDefault(); const fd = new FormData(e.target);
                 const num = s => parseFloat(String(s).replace(/\./g,'').replace(',','.')) || 0;
-                // FIX: Usamos handleAddProduct
-                handleAddProduct({ name: fd.get('name'), brand: fd.get('brand')||'Genérico', category: fd.get('cat')||'Varios', price: num(fd.get('price')), plannedQty: 0, actualQty: 1 });
+                addProd({ name: fd.get('name'), brand: fd.get('brand')||'Genérico', category: fd.get('cat')||'Varios', price: num(fd.get('price')), plannedQty: 0, actualQty: 1 });
                 setShowAddModal(false); setStatusMsg('Agregado'); setTimeout(()=>setStatusMsg(''), 2000);
             };
 
             const copyToClip = () => {
-                document.getElementById('exportarea').select();
-                document.execCommand('copy');
-                alert("Copiado.");
-            };
-
-            const enableDemo = () => {
-                setIsDemo(true);
-                setUser({ uid: 'demo-user', isAnonymous: true });
-                setLoading(false);
-                setView('list');
-                setProducts([{id:'1', name:'Producto Demo', price:100, actualQty:0, plannedQty:0, brand:'Genérico', category:'Varios'}]);
+                const el = document.getElementById('exportarea');
+                el.select(); document.execCommand('copy'); alert("Copiado.");
             };
 
             if(loading) return <div className="h-screen flex flex-col items-center justify-center text-blue-600 font-bold gap-4"><div className="loader"></div>Cargando...</div>;
@@ -345,7 +349,7 @@
                 <div className="h-screen bg-gradient-to-b from-blue-900 to-blue-700 flex flex-col items-center justify-center p-8 text-white text-center">
                     <img src="https://i.imgur.com/23tlEnQ.jpeg" className="w-40 rounded-3xl shadow-xl mb-8"/>
                     <button onClick={handleLogin} disabled={isLoggingIn} className={`bg-white text-gray-800 w-full py-4 rounded-xl font-bold shadow-lg flex items-center justify-center gap-3 active:scale-95 transition ${isLoggingIn?'opacity-70':''}`}>
-                        {Icons.Google()} {isLoggingIn ? 'Iniciando...' : 'Continuar con Google'}
+                        <Icons.Google size={20}/> {isLoggingIn ? 'Iniciando...' : 'Continuar con Google'}
                     </button>
                     <button onClick={handleAnon} disabled={isLoggingIn} className="mt-4 text-sm text-blue-300 underline hover:text-white">Invitado</button>
                 </div>
@@ -357,30 +361,30 @@
                         <div className="flex justify-between items-center px-4 py-2 bg-white overflow-hidden">
                             <div className="h-14 w-40 overflow-hidden flex items-center -ml-3"><img src="https://i.imgur.com/23tlEnQ.jpeg" className="h-full w-full object-contain scale-[1.8]" /></div>
                             <div className="flex gap-2 items-center">
-                                {view === 'list' && <div className="flex items-center gap-2"><button onClick={()=>{if(deferredPrompt){deferredPrompt.prompt(); deferredPrompt.userChoice.then(r=>{if(r.outcome==='accepted')setDeferredPrompt(null)})} else setShowInstallModal(true)}} className="bg-gray-100 text-blue-600 text-[10px] font-bold px-3 py-1.5 rounded-full flex items-center gap-1 border hover:bg-gray-200">{Icons.Download()} App</button><div className="flex items-center bg-gray-50 rounded-lg p-1 px-3 border shadow-sm"><div className="flex flex-col items-end mr-3"><span className="text-[9px] text-gray-500 font-bold uppercase">Plan</span><span className="text-sm font-medium">${products.reduce((a,b)=>a+(b.price*(b.plannedQty||0)),0)}</span></div><div className="w-px h-6 bg-gray-300"></div><div className="flex flex-col items-end ml-3"><span className="text-[10px] text-blue-600 font-black uppercase">Carrito</span><span className="text-2xl font-black text-blue-900 leading-none">${products.reduce((a,b)=>a+(b.price*(b.actualQty||0)),0)}</span></div></div><button onClick={handleFinishPurchase} className="bg-blue-600 text-white p-2 rounded-full shadow active:scale-95">{Icons.Save()}</button></div>}
-                                {view === 'history' && <div className="text-xs font-bold text-green-600 flex items-center gap-1 bg-green-50 px-3 py-1 rounded border border-green-100">{Icons.Database()} En Línea</div>}
-                                <button onClick={()=>setShowSettings(true)} className="p-2 text-gray-400 hover:text-gray-600">{Icons.Settings()}</button>
+                                {view === 'list' && <div className="flex items-center gap-2"><button onClick={()=>{if(deferredPrompt){deferredPrompt.prompt(); deferredPrompt.userChoice.then(r=>{if(r.outcome==='accepted')setDeferredPrompt(null)})} else setShowInstallModal(true)}} className="bg-gray-100 text-blue-600 text-[10px] font-bold px-3 py-1.5 rounded-full flex items-center gap-1 border hover:bg-gray-200"><Icons.Download size={14}/> <span>App</span></button><div className="flex items-center bg-gray-50 rounded-lg p-1 px-3 border shadow-sm"><div className="flex flex-col items-end mr-3"><span className="text-[9px] text-gray-500 font-bold uppercase">Plan</span><span className="text-sm font-medium">${products.reduce((a,b)=>a+(b.price*(b.plannedQty||0)),0)}</span></div><div className="w-px h-6 bg-gray-300"></div><div className="flex flex-col items-end ml-3"><span className="text-[10px] text-blue-600 font-black uppercase">Carrito</span><span className="text-2xl font-black text-blue-900 leading-none">${products.reduce((a,b)=>a+(b.price*(b.actualQty||0)),0)}</span></div></div><button onClick={finishPurchase} className="bg-blue-600 text-white p-2 rounded-full shadow active:scale-95"><Icons.Save size={18}/></button></div>}
+                                {view === 'history' && <div className="text-xs font-bold text-green-600 flex items-center gap-1 bg-green-50 px-3 py-1 rounded border border-green-100"><Icons.Database size={14}/> En Línea</div>}
+                                <button onClick={()=>setShowSettings(true)} className="p-2 text-gray-400 hover:text-gray-600"><Icons.Settings size={20}/></button>
                             </div>
                         </div>
                         {view === 'list' && user && <div className="bg-blue-50 px-4 py-1 text-[10px] text-blue-800 font-bold flex justify-between"><span>Hola, {user.displayName ? user.displayName.split(' ')[0] : 'Invitado'} 👋</span><span>{isDemo ? 'MODO TEST' : 'NUBE'}</span></div>}
                     </div>
 
                     <div className="flex-1 overflow-y-auto">
-                        {view === 'list' ? <ListView products={products} onUpdate={handleUpdateProduct} onAdd={handleAddProduct} filter={filter} setFilter={setFilter} brandFilter={brandFilter} setBrandFilter={setBrandFilter} showBrandFilter={showBrandFilter} setShowBrandFilter={setShowBrandFilter} searchTerm={searchTerm} setSearchTerm={setSearchTerm} isLocked={isLocked} setIsLocked={setIsLocked} showAdd={showAddModal} setShowAdd={setShowAddModal} onClear={()=>products.forEach(p=>p.actualQty>0 && handleUpdateProduct(p.id, {actualQty:0}))} handleQty={handleQty} /> : <HistoryView history={history} />}
+                        {view === 'list' ? <ListView products={products} onUpdate={updateProd} onAdd={handleAddProduct} filter={filter} setFilter={setFilter} brandFilter={brandFilter} setBrandFilter={setBrandFilter} showBrandFilter={showBrandFilter} setShowBrandFilter={setShowBrandFilter} searchTerm={searchTerm} setSearchTerm={setSearchTerm} isLocked={isLocked} setIsLocked={setIsLocked} showAdd={showAddModal} setShowAdd={setShowAddModal} onClear={()=>products.forEach(p=>p.actualQty>0 && updateProd(p.id, {actualQty:0}))} handleQty={handleQty} /> : <HistoryView history={history} />}
                     </div>
 
-                    {showSettings && <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4"><div className="bg-white rounded-xl w-full max-w-sm p-5 space-y-3"><div className="flex justify-between mb-4"><h3 className="font-bold">Ajustes</h3><button onClick={()=>setShowSettings(false)}>{Icons.X()}</button></div><div className="text-xs text-gray-500 bg-gray-50 p-2 rounded">ID: {user.uid}</div>{isAdmin && <button onClick={handleAdminImport} className="w-full py-3 bg-green-600 text-white rounded font-bold flex justify-center gap-2">{Icons.Download()} Sincronizar Sheet</button>}<button onClick={handleCleanDB} className="w-full py-3 border text-red-600 font-bold flex justify-center gap-2">{Icons.Trash()} Resetear</button><button onClick={handleLogout} className="w-full py-3 border font-bold flex justify-center gap-2">{Icons.LogOut()} Salir</button></div></div>}
+                    {showSettings && <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4"><div className="bg-white rounded-xl w-full max-w-sm p-5 space-y-3"><div className="flex justify-between mb-4"><h3 className="font-bold">Ajustes</h3><button onClick={()=>setShowSettings(false)}><Icons.X size={20}/></button></div><div className="text-xs text-gray-500 bg-gray-50 p-2 rounded">ID: {user.uid}</div>{isAdmin && <button onClick={handleAdminImport} className="w-full py-3 bg-green-600 text-white rounded font-bold flex justify-center gap-2"><Icons.Download size={18}/> Sincronizar Sheet</button>}<button onClick={cleanDB} className="w-full py-3 border text-red-600 font-bold flex justify-center gap-2"><Icons.Trash size={18}/> Resetear</button><button onClick={handleLogout} className="w-full py-3 border font-bold flex justify-center gap-2"><Icons.LogOut size={18}/> Salir</button></div></div>}
                     
-                    {showAddModal && <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4"><form onSubmit={handleAddItem} className="bg-white p-5 rounded-xl w-full max-w-xs shadow-2xl space-y-3"><div className="flex justify-between items-center"><h3 className="font-bold text-lg">Agregar</h3><button type="button" onClick={()=>setShowAddModal(false)}>{Icons.X()}</button></div><input name="name" className="w-full border p-2 rounded" placeholder="Nombre" required autoFocus/><div className="flex gap-2"><input name="brand" className="w-full border p-2 rounded" placeholder="Marca"/><input name="price" type="number" className="w-full border p-2 rounded" placeholder="Precio"/></div><select name="cat" className="w-full border p-2 rounded"><option value="Varios">Varios</option>{['Almacén','Bebidas','Limpieza','Perfumería','Frescos'].map(c=><option key={c} value={c}>{c}</option>)}</select><button className="w-full bg-blue-600 text-white font-bold py-3 rounded">Guardar</button></form></div>}
+                    {showAddModal && <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4"><form onSubmit={handleAddItem} className="bg-white p-5 rounded-xl w-full max-w-xs shadow-2xl space-y-3"><div className="flex justify-between items-center"><h3 className="font-bold text-lg">Agregar</h3><button type="button" onClick={()=>setShowAddModal(false)}><Icons.X size={20}/></button></div><input name="name" className="w-full border p-2 rounded" placeholder="Nombre" required autoFocus/><div className="flex gap-2"><input name="brand" className="w-full border p-2 rounded" placeholder="Marca"/><input name="price" type="number" className="w-full border p-2 rounded" placeholder="Precio"/></div><select name="cat" className="w-full border p-2 rounded"><option value="Varios">Varios</option>{['Almacén','Bebidas','Limpieza','Perfumería','Frescos'].map(c=><option key={c} value={c}>{c}</option>)}</select><button className="w-full bg-blue-600 text-white font-bold py-3 rounded">Guardar</button></form></div>}
 
-                    {showInstallModal && <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-6 animate-fade-in" onClick={() => setShowInstallModal(false)}><div className="bg-white rounded-xl p-6 max-w-sm text-center shadow-2xl relative" onClick={e => e.stopPropagation()}><button onClick={() => setShowInstallModal(false)} className="absolute top-2 right-2 text-gray-400">{Icons.X()}</button><h3 className="text-lg font-bold text-gray-800 mb-2">Instalar Nini App</h3><p className="text-sm text-gray-600 mb-4">Para instalar esta web como una App en tu iPhone:</p><div className="space-y-3 text-sm text-left bg-gray-50 p-4 rounded-lg"><div className="flex items-center gap-3">{Icons.Share()} <span>1. Toca el botón <b>Compartir</b> abajo.</span></div><div className="flex items-center gap-3">{Icons.Plus()} <span>2. Elige <b>"Agregar a Inicio"</b>.</span></div></div></div></div>}
+                    {showInstallModal && <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-6 animate-fade-in" onClick={() => setShowInstallModal(false)}><div className="bg-white rounded-xl p-6 max-w-sm text-center shadow-2xl relative" onClick={e => e.stopPropagation()}><button onClick={() => setShowInstallModal(false)} className="absolute top-2 right-2 text-gray-400"><Icons.X size={20}/></button><h3 className="text-lg font-bold text-gray-800 mb-2">Instalar Nini App</h3><p className="text-sm text-gray-600 mb-4">Para instalar esta web como una App en tu iPhone:</p><div className="space-y-3 text-sm text-left bg-gray-50 p-4 rounded-lg"><div className="flex items-center gap-3"><Icons.Share size={20} className="text-blue-500"/> <span>1. Toca el botón <b>Compartir</b> abajo.</span></div><div className="flex items-center gap-3"><Icons.Plus size={20} className="text-gray-600 border border-gray-400 rounded p-0.5"/> <span>2. Elige <b>"Agregar a Inicio"</b>.</span></div></div></div></div>}
 
-                    {showExportModal && <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"><div className="bg-white rounded-xl shadow-xl w-full max-w-md flex flex-col max-h-[80vh]"><div className="p-4 border-b flex justify-between"><h3 className="font-bold">Copiar al Excel</h3><button onClick={() => setShowExportModal(false)}>{Icons.X()}</button></div><div className="p-4 flex-1 bg-gray-50"><textarea id="exportarea" readOnly value={exportContent} className="w-full h-32 p-2 text-xs border rounded mb-2" onClick={e => e.target.select()} /><button onClick={copyToClip} className="w-full py-2 bg-green-600 text-white font-bold rounded">COPIAR AHORA</button></div><div className="p-4 border-t"><button onClick={() => { setProducts(prev => prev.map(p => ({...p, actualQty:0}))); setShowExportModal(false); }} className="w-full py-2 text-blue-600 font-bold border border-blue-600 rounded">Limpiar Carrito</button></div></div></div>}
+                    {showExportModal && <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"><div className="bg-white rounded-xl shadow-xl w-full max-w-md flex flex-col max-h-[80vh]"><div className="p-4 border-b flex justify-between"><h3 className="font-bold">Copiar al Excel</h3><button onClick={() => setShowExportModal(false)}><Icons.X size={20}/></button></div><div className="p-4 flex-1 bg-gray-50"><textarea id="exportarea" readOnly value={exportContent} className="w-full h-32 p-2 text-xs border rounded mb-2" onClick={e => e.target.select()} /><button onClick={copyToClip} className="w-full py-2 bg-green-600 text-white font-bold rounded">COPIAR AHORA</button></div><div className="p-4 border-t"><button onClick={() => { setProducts(prev => prev.map(p => ({...p, actualQty:0}))); setShowExportModal(false); }} className="w-full py-2 text-blue-600 font-bold border border-blue-600 rounded">Limpiar Carrito</button></div></div></div>}
 
                     <div className="fixed bottom-0 w-full flex justify-around items-center pb-safe z-50 h-16 shadow-lg" style={{ backgroundColor: COLORS.blue }}>
-                        <button onClick={() => setView('list')} className={`flex flex-col items-center justify-center w-full h-full ${view === 'list' ? 'text-white' : 'text-white/50'}`}>{Icons.List()}<span className="text-[10px] font-bold mt-1">Lista</span></button>
+                        <button onClick={() => setView('list')} className={`flex flex-col items-center justify-center w-full h-full ${view === 'list' ? 'text-white' : 'text-white/50'}`}><Icons.List size={24}/><span className="text-[10px] font-bold mt-1">Lista</span></button>
                         <div className="w-px h-8 bg-white/20"></div>
-                        <button onClick={() => setView('history')} className={`flex flex-col items-center justify-center w-full h-full ${view === 'history' ? 'text-white' : 'text-white/50'}`}>{Icons.PieChart()}<span className="text-[10px] font-bold mt-1">Historial</span></button>
+                        <button onClick={() => setView('history')} className={`flex flex-col items-center justify-center w-full h-full ${view === 'history' ? 'text-white' : 'text-white/50'}`}><Icons.PieChart size={24}/><span className="text-[10px] font-bold mt-1">Historial</span></button>
                     </div>
 
                     {statusMsg && <div className="fixed top-24 left-1/2 -translate-x-1/2 bg-black/80 text-white text-xs px-4 py-2 rounded-full shadow-lg z-50">{statusMsg}</div>}
@@ -388,7 +392,6 @@
             );
         }
 
-        // --- LIST VIEW ---
         const ListView = ({ products, onUpdate, onAdd, onClear, filter, setFilter, brandFilter, setBrandFilter, showBrandFilter, setShowBrandFilter, searchTerm, setSearchTerm, isLocked, setIsLocked, showAdd, setShowAdd, handleQty }) => {
             const cats = ['Todos', ...new Set(products.map(p => p.category || 'Varios'))].sort();
             const brands = ['Todas', ...new Set(products.filter(p => filter === 'Todos' || p.category === filter).map(p => p.brand || 'Genérico'))].sort();
@@ -399,13 +402,13 @@
                     <div className="bg-white p-3 border-b flex flex-col gap-3">
                         <AdBanner />
                         <div className="flex gap-2">
-                             <button onClick={() => setIsLocked(!isLocked)} className={`w-10 h-10 flex items-center justify-center rounded-lg border ${isLocked ? 'bg-orange-50 text-orange-600 border-orange-200' : 'bg-gray-50 text-gray-500'}`}>{isLocked ? Icons.Lock() : Icons.Unlock()}</button>
+                             <button onClick={() => setIsLocked(!isLocked)} className={`w-10 h-10 flex items-center justify-center rounded-lg border ${isLocked ? 'bg-orange-50 text-orange-600 border-orange-200' : 'bg-gray-50 text-gray-500'}`}>{isLocked ? <Icons.Lock size={18}/> : <Icons.Unlock size={18}/>}</button>
                              <div className="relative flex-1 flex gap-2">
-                                <div className="relative flex-1"><span className="absolute left-3 top-2 text-gray-400">{Icons.Search()}</span><input className="w-full h-10 pl-9 pr-3 rounded-lg border bg-gray-50 focus:bg-white outline-none text-sm" placeholder="Buscar..." onChange={e=>setSearchTerm(e.target.value)}/></div>
-                                <button onClick={()=>setShowAdd(true)} className="bg-blue-600 text-white w-10 rounded flex items-center justify-center shadow"><Icons.Plus/></button>
+                                <div className="relative flex-1"><span className="absolute left-3 top-2 text-gray-400"><Icons.Search size={16}/></span><input className="w-full h-10 pl-9 pr-3 rounded-lg border bg-gray-50 focus:bg-white outline-none text-sm" placeholder="Buscar..." onChange={e=>setSearchTerm(e.target.value)}/></div>
+                                <button onClick={()=>setShowAdd(true)} className="bg-blue-600 text-white w-10 rounded flex items-center justify-center shadow"><Icons.Plus size={18}/></button>
                              </div>
-                             <button onClick={() => setShowBrandFilter(!showBrandFilter)} className={`w-10 h-10 rounded-lg border flex items-center justify-center ${showBrandFilter ? 'bg-blue-100 text-blue-700' : 'text-gray-400'}`}>{Icons.Filter()}</button>
-                             <button onClick={onClear} className="w-10 h-10 text-gray-400 hover:text-red-500 flex items-center justify-center">{Icons.Trash()}</button>
+                             <button onClick={() => setShowBrandFilter(!showBrandFilter)} className={`w-10 h-10 rounded-lg border flex items-center justify-center ${showBrandFilter ? 'bg-blue-100 text-blue-700' : 'text-gray-400'}`}><Icons.Filter size={18}/></button>
+                             <button onClick={onClear} className="w-10 h-10 text-gray-400 hover:text-red-500 flex items-center justify-center"><Icons.Trash2 size={18}/></button>
                         </div>
                         {showBrandFilter && <div className="px-3 py-2 bg-blue-50 rounded border border-blue-100"><div className="text-[10px] font-bold text-blue-800 mb-1 uppercase">Marca</div><select value={brandFilter} onChange={e => setBrandFilter(e.target.value)} className="w-full p-2 text-sm border rounded"><option value="Todas">Todas</option>{brands.map(b => <option key={b} value={b}>{b}</option>)}</select></div>}
                         <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">{cats.map(c => (<button key={c} onClick={() => setFilter(c)} className={`px-3 py-1 rounded-full text-xs font-bold whitespace-nowrap transition-colors ${filter === c ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600'}`}>{c}</button>))}</div>
@@ -420,14 +423,14 @@
                                     <div className="flex items-center mt-1"><span className="text-sm text-gray-400 mr-1">$</span><input type="number" className="font-bold text-gray-700 w-20 bg-transparent border-b border-dashed outline-none" value={p.price} onChange={e=>onUpdate(p.id, {price: Number(e.target.value)})} /></div>
                                 </div>
                                 <div className={`w-16 flex items-center justify-center border-x border-gray-100 px-1 ${isLocked ? 'opacity-40 pointer-events-none' : ''}`}>
-                                    <button onClick={() => handleQty(p.id, -1, 'plannedQty')} className="px-1 text-gray-400"><Icons.Minus/></button>
+                                    <button onClick={() => handleQty(p.id, -1, 'plannedQty')} className="px-1 text-gray-400"><Icons.Minus size={12}/></button>
                                     <span className="font-bold text-gray-600 w-6 text-center text-lg">{p.plannedQty||0}</span>
-                                    <button onClick={() => handleQty(p.id, 1, 'plannedQty')} className="px-1 text-gray-400"><Icons.Plus/></button>
+                                    <button onClick={() => handleQty(p.id, 1, 'plannedQty')} className="px-1 text-gray-400"><Icons.Plus size={12}/></button>
                                 </div>
                                 <div className="w-28 flex items-center justify-between pl-3">
-                                    <button onClick={() => handleQty(p.id, -1, 'actualQty')} className="w-10 h-10 bg-white border rounded shadow-sm flex items-center justify-center text-gray-600"><Icons.Minus/></button>
+                                    <button onClick={() => handleQty(p.id, -1, 'actualQty')} className="w-10 h-10 bg-white border rounded shadow-sm flex items-center justify-center text-gray-600"><Icons.Minus size={18}/></button>
                                     <span className={`text-xl font-bold ${p.actualQty >= p.plannedQty && p.plannedQty > 0 ? 'text-green-600' : 'text-blue-900'}`}>{p.actualQty||0}</span>
-                                    <button onClick={() => handleQty(p.id, 1, 'actualQty')} className="w-10 h-10 bg-blue-600 text-white rounded shadow-md flex items-center justify-center active:scale-95"><Icons.Plus/></button>
+                                    <button onClick={() => handleQty(p.id, 1, 'actualQty')} className="w-10 h-10 bg-blue-600 text-white rounded shadow-md flex items-center justify-center active:scale-95"><Icons.Plus size={18}/></button>
                                 </div>
                             </div>
                         ))}
@@ -470,8 +473,8 @@
             return (
                 <div className="p-4 space-y-6 pb-24">
                     <div className="bg-white rounded-xl shadow border p-4">
-                        <div className="flex justify-between mb-4"><h3 className="font-bold text-gray-700 flex gap-2 text-blue-600">{Icons.PieChart()} Gasto Rubro</h3>
-                        <div className="relative"><select onChange={e=>setFilterDate(e.target.value)} className="text-xs border rounded bg-gray-50"><option value="all">Todo el Año</option>{availableMonths.map(m=><option key={m.value} value={m.value}>{m.label}</option>)}</select></div></div>
+                        <div className="flex justify-between mb-4"><h3 className="font-bold text-gray-700 flex gap-2 text-blue-600"><Icons.PieChart size={18} className="text-blue-500"/> Gasto Rubro</h3>
+                        <div className="relative"><select onChange={e=>setFilterDate(e.target.value)} className="text-xs border rounded bg-gray-50"><option value="all">Todo el Año</option>{availableMonths.map(m=><option key={m.value} value={m.value}>{m.label}</option>)}</select><span className="absolute right-2 top-1.5 pointer-events-none"><Icons.ChevronDown size={14}/></span></div></div>
                         <div className="flex items-center gap-4"><div className="w-32 h-32 rounded-full flex items-center justify-center flex-col shadow-inner" style={{background: `conic-gradient(${pieGrad})`}}><div className="bg-white w-24 h-24 rounded-full flex flex-col items-center justify-center shadow-sm"><span className="text-[9px] text-gray-400">TOTAL</span><span className="text-xs font-bold">${Math.round(pieData.reduce((a,b)=>a+b.value,0)).toLocaleString('es-AR')}</span></div></div><div className="flex-1 space-y-1">{pieData.slice(0,5).map((c,i)=>(<div key={i} className="flex justify-between text-xs"><span>{c.name}</span><span className="font-bold">{Math.round(c.percent)}%</span></div>))}</div></div>
                     </div>
                     <div className="bg-white rounded-xl shadow border p-4">
@@ -484,7 +487,7 @@
                             <div key={h.id} className="border-b last:border-0">
                                 <div onClick={()=>setExpandedId(expandedId===h.id?null:h.id)} className="px-4 py-3 flex justify-between items-center hover:bg-gray-50 cursor-pointer">
                                     <div><div className="font-bold text-sm">{new Date(h.date).toLocaleDateString('es-AR')}</div><div className="text-xs text-gray-400">{h.items.length} items</div></div>
-                                    <div className="flex items-center gap-2"><span className="font-bold text-blue-600">${h.total.toLocaleString('es-AR')}</span>{Icons.ChevronDown()}</div>
+                                    <div className="flex items-center gap-2"><span className="font-bold text-blue-600">${h.total.toLocaleString('es-AR')}</span><Icons.ChevronDown size={16}/></div>
                                 </div>
                                 {expandedId === h.id && <div className="bg-gray-50 p-3 text-xs border-t">{h.items.map((i,x)=><div key={x} className="flex justify-between mb-1 pb-1 border-b border-dashed last:border-0 pb-1"><span>{i.actualQty}x {i.name}</span><span>${i.price}</span></div>)}</div>}
                             </div>
