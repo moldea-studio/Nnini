@@ -7,36 +7,29 @@
     
     <meta name="theme-color" content="#ffffff">
     <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <link rel="apple-touch-icon" href="https://i.imgur.com/23tlEnQ.jpeg">
     <link rel="manifest" href="data:application/manifest+json;base64,ewogICJuYW1lIjogIk5pbmkgQ2xvdWQiLAogICJzaG9ydF9uYW1lIjogIk5pbmkiLAogICJzdGFydF91cmwiOiAiLiIsCiAgImRpc3BsYXkiOiAic3RhbmRhbG9uZSIsCiAgImJhY2tncm91bmRfY29sb3IiOiAiI2ZmZmZmZiIsCiAgInRoZW1lX2NvbG9yIjogIiMwMDRhYWQiLAogICJpY29ucyI6IFsKICAgIHsKICAgICAgInNyYyI6ICJodHRwczovL2kuaW1ndXIuY29tLzIzdGxFblEuanBlZyIsCiAgICAgICJzaXplcyI6ICI1MTJ4NTEyIiwKICAgICAgInR5cGUiOiAiaW1hZ2UvanBlZyIKICAgIH0KICBdCn0=">
 
-    <!-- ESTILOS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- REACT -->
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     
-    <!-- FIREBASE (Compat Mode - Más estable para GitHub Pages) -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 
     <style>
-        body { -webkit-tap-highlight-color: transparent; user-select: none; font-family: -apple-system, sans-serif; }
+        body { -webkit-tap-highlight-color: transparent; user-select: none; font-family: system-ui, -apple-system, sans-serif; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
-        input, select { font-size: 16px; }
         .loader { width:30px; height:30px; border:3px solid #eee; border-top-color:#004aad; border-radius:50%; animation:spin 1s infinite linear; }
         @keyframes spin { 100% { transform:rotate(360deg); } }
     </style>
 </head>
 <body class="bg-gray-50 text-gray-800">
     <div id="root">
-        <div style="height:100vh; display:flex; flex-direction:column; justify-content:center; align-items:center;">
+        <div style="height:100vh; display:flex; justify-content:center; align-items:center;">
             <div class="loader"></div>
-            <p style="margin-top:10px; font-size:12px; color:#999;">Cargando...</p>
         </div>
     </div>
 
@@ -57,7 +50,6 @@
         const LINK_HOJA_PRODUCTOS_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=LINK_HOJA_PRODUCTOS`; 
         const LINK_HOJA_HISTORIAL_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=LINK_HOJA_HISTORIAL`;
 
-        // INICIALIZAR FIREBASE
         if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const db = firebase.firestore();
@@ -68,7 +60,7 @@
             pie: ['#93C5FD', '#FCA5A5', '#86EFAC', '#FDE047', '#D8B4FE', '#F9A8D4', '#67E8F9']
         };
 
-        // --- ICONOS (Componentes) ---
+        // --- ICONOS ---
         const IconBase = ({ children, size=24, className="", ...rest }) => (
             <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} {...rest}>
                 {children}
@@ -97,28 +89,17 @@
             LogOut: (props) => <IconBase {...props}><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></IconBase>,
             AlertTriangle: (props) => <IconBase {...props}><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></IconBase>,
             Settings: (props) => <IconBase {...props}><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.09a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></IconBase>,
-            Google: (props) => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" {...props}><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+            Google: (props) => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" {...props}><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>,
+            RefreshCw: (props) => <IconBase {...props}><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M3 21v-5h5"/></IconBase>
         };
 
-        const INITIAL_PRODUCTS = [
-            { id: '101', name: 'Cargando...', brand: '...', category: 'General', price: 0, plannedQty: 0, actualQty: 0 },
-        ];
+        const INITIAL_PRODUCTS = [];
 
-        // --- ERROR BOUNDARY ---
+        // --- COMPONENTE ERROR ---
         class ErrorBoundary extends React.Component {
             constructor(props) { super(props); this.state = { hasError: false, error: null }; }
             static getDerivedStateFromError(error) { return { hasError: true, error }; }
-            
-            copyError = () => {
-                const el = document.createElement('textarea');
-                el.value = this.state.error?.toString();
-                document.body.appendChild(el);
-                el.select();
-                document.execCommand('copy');
-                document.body.removeChild(el);
-                alert("Error copiado");
-            }
-
+            copyError = () => { navigator.clipboard.writeText(this.state.error?.toString()).then(()=>alert("Error copiado")); }
             render() {
                 if (this.state.hasError) return (
                     <div className="flex flex-col items-center justify-center h-screen p-6 text-center bg-gray-50">
@@ -145,13 +126,15 @@
             const [showSettings, setShowSettings] = useState(false);
             const [isDemo, setIsDemo] = useState(false);
             const [isLoggingIn, setIsLoggingIn] = useState(false);
-            
-            // Share
+
+            // COMPARTIR
             const [viewTargetUid, setViewTargetUid] = useState(null); 
             const [myShareCode, setMyShareCode] = useState(null);
             const [incomingRequests, setIncomingRequests] = useState([]);
             const [connectCode, setConnectCode] = useState('');
+            const [following, setFollowing] = useState([]); // A quien sigo
 
+            // UI
             const [filter, setFilter] = useState('Todos'); 
             const [brandFilter, setBrandFilter] = useState('Todas');
             const [showBrandFilter, setShowBrandFilter] = useState(false);
@@ -210,15 +193,21 @@
                     setHistory(snap.docs.map(d => ({id: d.id, ...d.data()})));
                 }, err => {});
                 
-                // SOLICITUDES
+                // SOLICITUDES & SIGUIENDO
                 let unsubReq = () => {};
+                let unsubFollow = () => {};
+                
                 if (targetUid === user.uid) {
                     unsubReq = db.collection(`users/${user.uid}/requests`).where("status", "==", "pending").onSnapshot(snap => {
                         setIncomingRequests(snap.docs.map(d => ({id: d.id, ...d.data()})));
                     });
+                    
+                    unsubFollow = db.collection(`users/${user.uid}/following`).onSnapshot(snap => {
+                         setFollowing(snap.docs.map(d => ({uid: d.id, ...d.data()})));
+                    });
                 }
 
-                return () => { unsubProd(); unsubHist(); unsubReq(); };
+                return () => { unsubProd(); unsubHist(); unsubReq(); unsubFollow(); };
             }, [user, viewTargetUid]);
 
             useEffect(() => localStorage.setItem('nini_is_locked', isLocked), [isLocked]);
@@ -235,13 +224,22 @@
                     const doc = await db.collection('public_codes').doc(code).get();
                     if(!doc.exists) { alert("Código no encontrado"); setStatusMsg(""); return; }
                     const targetUid = doc.data().uid;
+                    
+                    // Crear solicitud en el destino
                     await db.collection(`users/${targetUid}/requests`).add({
                         fromUid: user.uid,
                         fromName: user.displayName || "Amigo",
                         status: "pending",
                         date: new Date().toISOString()
                     });
-                    alert("Solicitud enviada! Espera que te acepten.");
+                    
+                    // Guardar que sigo a esta persona
+                    await db.collection(`users/${user.uid}/following`).doc(targetUid).set({
+                        name: doc.data().name,
+                        code: code
+                    });
+
+                    alert("Solicitud enviada! Cuando te acepten, aparecerá en tu lista de amigos.");
                     setConnectCode("");
                 } catch(e) { alert("Error: "+e.message); }
                 setStatusMsg("");
@@ -252,7 +250,10 @@
                 await db.collection(`users/${user.uid}/requests`).doc(reqId).update({ status: "accepted" });
             };
             
-            const viewMyList = () => setViewTargetUid(user.uid);
+            const switchToFriend = (uid) => {
+                setViewTargetUid(uid);
+                setView('list');
+            };
 
             const handleLogin = async () => {
                 if(isLoggingIn) return; setIsLoggingIn(true);
@@ -345,12 +346,6 @@
                 } catch(e) { console.error(e); setStatusMsg(''); }
             };
 
-            const handleAdminImport = async () => {
-                 if(!confirm("ADMIN: Resetear DB?")) return;
-                 setStatusMsg("Importando..."); setShowSettings(false);
-                 await autoImport(user.uid);
-            };
-
             const finishPurchase = async () => {
                 const bought = products.filter(p=>p.actualQty>0);
                 if(bought.length===0) return alert("Vacío");
@@ -430,18 +425,26 @@
                                 {view === 'list' && <div className="flex items-center gap-2"><button onClick={()=>{if(deferredPrompt){deferredPrompt.prompt(); deferredPrompt.userChoice.then(r=>{if(r.outcome==='accepted')setDeferredPrompt(null)})} else setShowInstallModal(true)}} className="bg-gray-100 text-blue-600 text-[10px] font-bold px-3 py-1.5 rounded-full flex items-center gap-1 border hover:bg-gray-200"><Icons.Download size={14}/> <span>App</span></button><div className="flex items-center bg-gray-50 rounded-lg p-1 px-3 border shadow-sm"><div className="flex flex-col items-end mr-3"><span className="text-[9px] text-gray-500 font-bold uppercase">Plan</span><span className="text-sm font-medium">${totalPlan.toLocaleString('es-AR')}</span></div><div className="w-px h-6 bg-gray-300"></div><div className="flex flex-col items-end ml-3"><span className="text-[10px] text-blue-600 font-black uppercase">Carrito</span><span className="text-2xl font-black text-blue-900 leading-none">${totalCart.toLocaleString('es-AR')}</span></div></div><button onClick={finishPurchase} disabled={isReadOnly} className={`text-white p-2 rounded-full shadow active:scale-95 ${isReadOnly?'bg-gray-400':'bg-blue-600'}`}><Icons.Save size={18}/></button></div>}
                                 {view === 'shared' && <div className="text-xs font-bold text-orange-600 flex items-center gap-1 bg-orange-50 px-3 py-1 rounded border border-orange-100"><Icons.User size={14}/> Compartido</div>}
                                 {view === 'history' && <div className="text-xs font-bold text-green-600 flex items-center gap-1 bg-green-50 px-3 py-1 rounded border border-green-100"><Icons.Database size={14}/> En Línea</div>}
-                                <button onClick={()=>setShowSettings(true)} className="p-2 text-gray-400 hover:text-gray-600 relative">
-                                    <Icons.Settings size={20}/>
-                                    {incomingRequests.length > 0 && <span className="absolute top-1 right-1 w-3 h-3 bg-red-500 rounded-full animate-ping"></span>}
-                                </button>
+                                {view === 'list' && !isReadOnly && (
+                                    <button onClick={()=>setShowSettings(true)} className="p-2 text-gray-400 hover:text-gray-600 relative">
+                                        <Icons.Settings size={20}/>
+                                        {incomingRequests.length > 0 && <span className="absolute top-1 right-1 w-3 h-3 bg-red-500 rounded-full animate-ping"></span>}
+                                    </button>
+                                )}
                             </div>
                         </div>
-                        {view === 'list' && user && <div className={`px-4 py-1 text-[10px] font-bold flex justify-between ${isReadOnly ? 'bg-orange-100 text-orange-800' : 'bg-blue-50 text-blue-800'}`}><span>Hola, {user.displayName ? user.displayName.split(' ')[0] : 'Invitado'} 👋</span><span>{isReadOnly ? 'VIENDO: '+viewTargetUid.slice(0,6) : (isDemo ? 'MODO TEST' : 'NUBE')}</span></div>}
+                        {view === 'list' && user && <div className={`px-4 py-1 text-[10px] font-bold flex justify-between ${isReadOnly ? 'bg-orange-100 text-orange-800' : 'bg-blue-50 text-blue-800'}`}><span>Hola, {user.displayName ? user.displayName.split(' ')[0] : 'Invitado'} 👋</span><span>{isReadOnly ? 'VIENDO: '+viewTargetUid.slice(0,6).toUpperCase() : (isDemo ? 'MODO TEST' : 'NUBE')}</span></div>}
                     </div>
 
                     <div className="flex-1 overflow-y-auto">
                         {view === 'list' ? (
                             <div>
+                                {isReadOnly && (
+                                    <div className="bg-orange-100 p-2 text-center text-xs text-orange-800 font-bold flex justify-between items-center px-4">
+                                        <span>Modo Espejo (Solo Lectura)</span>
+                                        <button onClick={()=>setView('shared')} className="underline">Salir</button>
+                                    </div>
+                                )}
                                 <div className="bg-white p-3 border-b flex flex-col gap-3">
                                     <AdBanner />
                                     <div className="flex gap-2">
@@ -484,41 +487,50 @@
                         ) : view === 'shared' ? (
                              <div className="p-6 text-center space-y-6">
                                 <h3 className="text-xl font-bold text-gray-800">Modo Compartido</h3>
-                                {isReadOnly ? (
-                                    <div className="bg-green-50 p-4 rounded border border-green-200">
-                                        <p className="text-green-800 mb-4">Estás viendo la lista de <b>{viewTargetUid.slice(0,6)}</b></p>
-                                        <button onClick={()=>setView('list')} className="bg-white text-green-700 border border-green-600 px-4 py-2 rounded font-bold w-full">Volver a Mi Lista</button>
+                                
+                                <div className="space-y-4">
+                                    <div className="bg-gray-100 p-4 rounded text-center">
+                                        <div className="text-xs uppercase text-gray-500 font-bold mb-1">Tu Código</div>
+                                        <div className="text-3xl font-black text-blue-600 tracking-widest">{myShareCode}</div>
+                                        <p className="text-xs text-gray-400 mt-2">Comparte este código para que vean tu lista</p>
+                                        <button onClick={copyShareCode} className="mt-2 text-blue-600 text-xs font-bold flex items-center justify-center gap-1"><Icons.Copy size={12}/> Copiar</button>
                                     </div>
-                                ) : (
-                                    <div className="space-y-4">
-                                        <div className="bg-gray-100 p-4 rounded text-center">
-                                            <div className="text-xs uppercase text-gray-500 font-bold mb-1">Tu Código</div>
-                                            <div className="text-3xl font-black text-blue-600 tracking-widest">{myShareCode}</div>
-                                            <p className="text-xs text-gray-400 mt-2">Comparte este código para que vean tu lista</p>
-                                            <button onClick={copyShareCode} className="mt-2 text-blue-600 text-xs font-bold flex items-center justify-center gap-1"><Icons.Copy size={12}/> Copiar</button>
-                                        </div>
-                                        
-                                        <div className="border-t pt-4">
-                                            <p className="text-sm font-bold text-gray-700 mb-2">Ver lista de otro:</p>
-                                            <div className="flex gap-2">
-                                                <input value={connectCode} onChange={e=>setConnectCode(e.target.value)} placeholder="Ingresa código..." className="flex-1 border p-3 rounded uppercase text-center font-bold tracking-wider" maxLength={6}/>
-                                                <button onClick={sendRequest} className="bg-blue-600 text-white px-4 font-bold rounded">SOLICITAR</button>
-                                            </div>
-                                        </div>
 
-                                        {incomingRequests.length > 0 && (
-                                            <div className="bg-orange-50 border border-orange-200 rounded p-3 text-left">
-                                                <p className="text-xs font-bold text-orange-800 mb-2">Solicitudes Pendientes:</p>
-                                                {incomingRequests.map(req => (
-                                                    <div key={req.id} className="flex justify-between items-center bg-white p-2 rounded mb-1 border border-orange-100">
-                                                        <span className="text-xs font-bold">{req.fromName}</span>
-                                                        <button onClick={()=>acceptRequest(req.id, req.fromUid)} className="bg-green-500 text-white text-[10px] px-3 py-1 rounded font-bold">Aceptar</button>
-                                                    </div>
-                                                ))}
+                                    {/* LISTA DE AMIGOS */}
+                                    <div className="text-left">
+                                        <p className="text-sm font-bold text-gray-700 mb-2">Mis Amigos:</p>
+                                        {following.length === 0 && <p className="text-xs text-gray-400 italic">No sigues a nadie.</p>}
+                                        {following.map(f => (
+                                            <div key={f.uid} className="flex justify-between items-center bg-blue-50 p-3 rounded mb-2 border border-blue-100">
+                                                <div>
+                                                    <p className="text-sm font-bold text-blue-800">{f.name || 'Usuario'}</p>
+                                                    <p className="text-xs text-blue-400">ID: {f.uid.slice(0,4)}</p>
+                                                </div>
+                                                <button onClick={()=>switchToFriend(f.uid)} className="bg-blue-600 text-white text-xs px-3 py-2 rounded font-bold shadow">Ver Lista</button>
                                             </div>
-                                        )}
+                                        ))}
                                     </div>
-                                )}
+                                    
+                                    <div className="border-t pt-4">
+                                        <p className="text-sm font-bold text-gray-700 mb-2">Agregar nuevo:</p>
+                                        <div className="flex gap-2">
+                                            <input value={connectCode} onChange={e=>setConnectCode(e.target.value)} placeholder="Ingresa código..." className="flex-1 border p-3 rounded uppercase text-center font-bold tracking-wider" maxLength={6}/>
+                                            <button onClick={sendRequest} className="bg-green-600 text-white px-4 font-bold rounded">SOLICITAR</button>
+                                        </div>
+                                    </div>
+
+                                    {incomingRequests.length > 0 && (
+                                        <div className="bg-orange-50 border border-orange-200 rounded p-3 text-left mt-4">
+                                            <p className="text-xs font-bold text-orange-800 mb-2">Solicitudes Pendientes:</p>
+                                            {incomingRequests.map(req => (
+                                                <div key={req.id} className="flex justify-between items-center bg-white p-2 rounded mb-1 border border-orange-100">
+                                                    <span className="text-xs font-bold">{req.fromName}</span>
+                                                    <button onClick={()=>acceptRequest(req.id, req.fromUid)} className="bg-green-500 text-white text-[10px] px-3 py-1 rounded font-bold">Aceptar</button>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
                              </div>
                         ) : (
                             <HistoryView history={history} />
@@ -544,41 +556,14 @@
 
                     {showSettings && <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4"><div className="bg-white rounded-xl w-full max-w-sm p-5 space-y-3">
                         <div className="flex justify-between mb-4"><h3 className="font-bold">Ajustes</h3><button onClick={()=>setShowSettings(false)}><Icons.X size={20}/></button></div>
-                        <div className="bg-gray-100 p-3 rounded text-center mb-4 relative">
-                            <div className="text-[10px] uppercase text-gray-500 font-bold">Tu código para compartir</div>
-                            <div className="text-2xl font-black text-blue-600 tracking-widest">{myShareCode}</div>
-                            <button onClick={copyShareCode} className="absolute right-2 top-2 text-gray-400 hover:text-blue-600"><Icons.Copy size={16}/></button>
-                        </div>
-
-                        {incomingRequests.length > 0 && (
-                            <div className="bg-orange-50 border border-orange-200 rounded p-3 mb-4">
-                                <p className="text-xs font-bold text-orange-800 mb-2">Solicitudes de Acceso:</p>
-                                {incomingRequests.map(req => (
-                                    <div key={req.id} className="flex justify-between items-center bg-white p-2 rounded mb-1">
-                                        <span className="text-xs font-bold">{req.fromName}</span>
-                                        <button onClick={()=>acceptRequest(req.id, req.fromUid)} className="bg-green-500 text-white text-[10px] px-2 py-1 rounded">Aceptar</button>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-
-                        <div className="flex gap-2">
-                            <input value={connectCode} onChange={e=>setConnectCode(e.target.value)} placeholder="Código de amigo..." className="flex-1 border p-2 text-sm rounded uppercase" maxLength={6}/>
-                            <button onClick={sendRequest} className="bg-blue-600 text-white px-3 text-xs font-bold rounded">PEDIR ACCESO</button>
-                        </div>
-                        {isReadOnly && <button onClick={viewMyList} className="w-full py-3 bg-blue-100 text-blue-700 font-bold rounded mt-4">Volver a mi Lista</button>}
-
-                        <div className="border-t pt-4 mt-4">
-                            {isAdmin && <button onClick={handleAdminImport} className="w-full py-3 bg-green-600 text-white rounded font-bold flex justify-center gap-2 mb-2"><Icons.Download size={18}/> Sincronizar Sheet</button>}
-                            {isAdmin && <button onClick={handleResetPlan} className="w-full py-3 border border-orange-200 text-orange-600 rounded font-bold flex justify-center gap-2 mb-2"><Icons.List size={18}/> Reset Plan</button>}
-                            {isAdmin && <button onClick={cleanDB} className="w-full py-3 border text-red-600 font-bold flex justify-center gap-2"><Icons.Trash size={18}/> Resetear DB</button>}
-                        </div>
+                        <div className="text-xs text-gray-500 bg-gray-50 p-2 rounded">ID: {user.uid}</div>
+                        {isAdmin && <button onClick={handleAdminImport} className="w-full py-3 bg-green-600 text-white rounded font-bold flex justify-center gap-2 mb-2"><Icons.Download size={18}/> Sincronizar Sheet</button>}
+                        {isAdmin && <button onClick={handleResetPlan} className="w-full py-3 border border-orange-200 text-orange-600 rounded font-bold flex justify-center gap-2 mb-2"><Icons.List size={18}/> Reset Plan</button>}
+                        {isAdmin && <button onClick={cleanDB} className="w-full py-3 border text-red-600 font-bold flex justify-center gap-2"><Icons.Trash size={18}/> Resetear DB</button>}
                         <button onClick={handleLogout} className="w-full py-3 border font-bold flex justify-center gap-2"><Icons.LogOut size={18}/> Salir</button>
                     </div></div>}
                     
                     {showInstallModal && <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-6 animate-fade-in" onClick={() => setShowInstallModal(false)}><div className="bg-white rounded-xl p-6 max-w-sm text-center shadow-2xl relative" onClick={e => e.stopPropagation()}><button onClick={() => setShowInstallModal(false)} className="absolute top-2 right-2 text-gray-400"><Icons.X size={20}/></button><h3 className="text-lg font-bold text-gray-800 mb-2">Instalar Nini App</h3><p className="text-sm text-gray-600 mb-4">Para instalar esta web como una App en tu iPhone:</p><div className="space-y-3 text-sm text-left bg-gray-50 p-4 rounded-lg"><div className="flex items-center gap-3"><Icons.Share size={20} className="text-blue-500"/> <span>1. Toca el botón <b>Compartir</b> abajo.</span></div><div className="flex items-center gap-3"><Icons.Plus size={20} className="text-gray-600 border border-gray-400 rounded p-0.5"/> <span>2. Elige <b>"Agregar a Inicio"</b>.</span></div></div></div></div>}
-
-                    {showExportModal && <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"><div className="bg-white rounded-xl shadow-xl w-full max-w-md flex flex-col max-h-[80vh]"><div className="p-4 border-b flex justify-between"><h3 className="font-bold">Copiar al Excel</h3><button onClick={() => setShowExportModal(false)}><Icons.X size={20}/></button></div><div className="p-4 flex-1 bg-gray-50"><textarea id="exportarea" readOnly value={exportContent} className="w-full h-32 p-2 text-xs border rounded mb-2" onClick={e => e.target.select()} /><button onClick={copyToClip} className="w-full py-2 bg-green-600 text-white font-bold rounded">COPIAR AHORA</button></div><div className="p-4 border-t"><button onClick={() => { setProducts(prev => prev.map(p => ({...p, actualQty:0}))); setShowExportModal(false); }} className="w-full py-2 text-blue-600 font-bold border border-blue-600 rounded">Limpiar Carrito</button></div></div></div>}
 
                     <div className="fixed bottom-0 w-full flex justify-around items-center pb-safe z-50 h-16 shadow-lg" style={{ backgroundColor: COLORS.blue }}>
                         <button onClick={() => { setView('list'); setViewTargetUid(user.uid); }} className={`flex flex-col items-center justify-center w-full h-full ${view === 'list' && !isReadOnly ? 'text-white' : 'text-white/50'}`}><Icons.List size={24} strokeWidth={2.5} /><span className="text-[10px] font-bold mt-1">Lista</span></button>
