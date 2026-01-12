@@ -7,18 +7,36 @@
     
     <meta name="theme-color" content="#ffffff">
     <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <link rel="apple-touch-icon" href="https://i.imgur.com/23tlEnQ.jpeg">
-    <link rel="manifest" href="data:application/manifest+json;base64,ewogICJuYW1lIjogIk5pbmkgQ2xvdWQiLAogICJzaG9ydF9uYW1lIjogIk5pbmkiLAogICJzdGFydF91cmwiOiAiLiIsCiAgImRpc3BsYXkiOiAic3RhbmRhbG9uZSIsCiAgImJhY2tncm91bmRfY29sb3IiOiAiI2ZmZmZmZiIsCiAgInRoZW1lX2NvbG9yIjogIiMwMDRhYWQiLAogICJpY29ucyI6IFsKICAgIHsKICAgICAgInNyYyI6ICJodHRwczovL2kuaW1ndXIuY29tLzIzdGxFblEuanBlZyIsCiAgICAgICJzaXplcyI6ICI1MTJ4NTEyIiwKICAgICAgInR5cGUiOiAiaW1hZ2UvanBlZyIKICAgIH0KICBdCn0=">
+    <link rel="manifest" href="data:application/manifest+json;base64,ewogICJuYW1lIjogIk5pbmkgQ2xvdWQiLAogICJzaG9ydF9uYW1lIjogIk5pbmkiLAogICJzdGFydF91cmwiOiAiLiIsCiAgImRpc3BsYXkiOiAic3RhbmRhbG9uZSIsCiAgImJhY2tncm91bmRfY29sb3IiOiAiI2ZmZmZmZiIsCiAgInRoZW1lX2NvbG9yIjogIiNmZmZmZmYiLAogICJpY29ucyI6IFsKICAgIHsKICAgICAgInNyYyI6ICJodHRwczovL2kuaW1ndXIuY29tLzIzdGxFblEuanBlZyIsCiAgICAgICJzaXplcyI6ICI1MTJ4NTEyIiwKICAgICAgInR5cGUiOiAiaW1hZ2UvanBlZyIKICAgIH0KICBdCn0=">
 
-    <!-- ESTILOS -->
+    <!-- PANTALLA DE ERROR DE EMERGENCIA -->
+    <script>
+        window.onerror = function(msg, url, line, col, error) {
+            const root = document.getElementById('root');
+            // Solo mostramos el error si la app no cargó
+            if(root && (!root.innerHTML || root.innerHTML.includes('loader'))) {
+                root.innerHTML = `
+                    <div style="height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:20px; font-family:sans-serif; text-align:center; background:#fff5f5;">
+                        <h2 style="color:#e31d2b; font-weight:bold; margin-bottom:10px;">¡Error de Carga!</h2>
+                        <div style="background:white; border:1px solid #ffcccc; padding:15px; border-radius:8px; font-size:12px; color:#c00; margin-bottom:20px; text-align:left;">
+                            <strong>${msg}</strong><br>Línea: ${line}
+                        </div>
+                        <button onclick="localStorage.clear(); window.location.reload()" style="background:#004aad; color:white; border:none; padding:12px 24px; border-radius:8px; font-weight:bold; cursor:pointer;">
+                            Restablecer App
+                        </button>
+                    </div>
+                `;
+            }
+        };
+    </script>
+
     <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- REACT -->
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     
-    <!-- FIREBASE (Compat) -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
@@ -33,9 +51,8 @@
 </head>
 <body class="bg-gray-50 text-gray-800">
     <div id="root">
-        <div style="height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; color:#004aad;">
+        <div style="height:100vh; display:flex; justify-content:center; align-items:center;">
             <div class="loader"></div>
-            <p style="margin-top:10px; font-weight:bold;">Iniciando App...</p>
         </div>
     </div>
 
@@ -66,49 +83,62 @@
             pie: ['#93C5FD', '#FCA5A5', '#86EFAC', '#FDE047', '#D8B4FE', '#F9A8D4', '#67E8F9']
         };
 
-        // --- ICONOS ---
-        const Icon = ({ p, size=24, className="", ...rest }) => (
+        // --- ICONOS (Componentes) ---
+        const IconBase = ({ p, size=24, className="", ...rest }) => (
             <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} {...rest}>{p}</svg>
         );
 
         const Icons = {
-            Search: (props) => <Icon p={<><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></>} size={16} {...props}/>,
-            Trash: (props) => <Icon p={<><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></>} {...props}/>,
-            Plus: (props) => <Icon p={<><path d="M5 12h14"/><path d="M12 5v14"/></>} {...props}/>,
-            Minus: (props) => <Icon p={<path d="M5 12h14"/>} {...props}/>,
-            Lock: (props) => <Icon p={<><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></>} {...props}/>,
-            Unlock: (props) => <Icon p={<><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></>} {...props}/>,
-            Filter: (props) => <Icon p={<><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></>} {...props}/>,
-            Save: (props) => <Icon p={<><path d="M15.2 3a2 2 0 0 1 1.4.6l3.8 3.8a2 2 0 0 1 .6 1.4V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/><path d="M17 21v-8H7v8"/><path d="M7 3v5h8"/></>} {...props}/>,
-            List: (props) => <Icon p={<><line x1="8" x2="21" y1="6" y2="6"/><line x1="8" x2="21" y1="12" y2="12"/><line x1="8" x2="21" y1="18" y2="18"/><line x1="3" x2="3.01" y1="6" y2="6"/><line x1="3" x2="3.01" y1="12" y2="12"/><line x1="3" x2="3.01" y1="18" y2="18"/></>} {...props}/>,
-            PieChart: (props) => <Icon p={<><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/></>} {...props}/>,
-            Database: (props) => <Icon p={<><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></>} {...props}/>,
-            Copy: (props) => <Icon p={<><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></>} {...props}/>,
-            X: (props) => <Icon p={<><path d="M18 6 6 18"/><path d="m6 6 12 12"/></>} {...props}/>,
-            ChevronDown: (props) => <Icon p={<path d="m6 9 6 6 6-6"/>} {...props}/>,
-            ChevronUp: (props) => <Icon p={<path d="m18 15-6-6-6 6"/>} {...props}/>,
-            Download: (props) => <Icon p={<><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></>} {...props}/>,
-            Share: (props) => <Icon p={<><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" x2="12" y1="2" y2="15"/></>} {...props}/>,
-            User: (props) => <Icon p={<><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></>} {...props}/>,
-            LogOut: (props) => <Icon p={<><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></>} {...props}/>,
-            AlertTriangle: (props) => <Icon p={<><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></>} {...props}/>,
-            Settings: (props) => <Icon p={<><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.09a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></>} {...props}/>,
+            Search: (props) => <IconBase p={<><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></>} size={16} {...props}/>,
+            Trash: (props) => <IconBase p={<><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></>} {...props}/>,
+            Plus: (props) => <IconBase p={<><path d="M5 12h14"/><path d="M12 5v14"/></>} {...props}/>,
+            Minus: (props) => <IconBase p={<path d="M5 12h14"/>} {...props}/>,
+            Lock: (props) => <IconBase p={<><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></>} {...props}/>,
+            Unlock: (props) => <IconBase p={<><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></>} {...props}/>,
+            Filter: (props) => <IconBase p={<><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></>} {...props}/>,
+            Save: (props) => <IconBase p={<><path d="M15.2 3a2 2 0 0 1 1.4.6l3.8 3.8a2 2 0 0 1 .6 1.4V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/><path d="M17 21v-8H7v8"/><path d="M7 3v5h8"/></>} {...props}/>,
+            List: (props) => <IconBase p={<><line x1="8" x2="21" y1="6" y2="6"/><line x1="8" x2="21" y1="12" y2="12"/><line x1="8" x2="21" y1="18" y2="18"/><line x1="3" x2="3.01" y1="6" y2="6"/><line x1="3" x2="3.01" y1="12" y2="12"/><line x1="3" x2="3.01" y1="18" y2="18"/></>} {...props}/>,
+            PieChart: (props) => <IconBase p={<><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/></>} {...props}/>,
+            Database: (props) => <IconBase p={<><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></>} {...props}/>,
+            Copy: (props) => <IconBase p={<><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></>} {...props}/>,
+            X: (props) => <IconBase p={<><path d="M18 6 6 18"/><path d="m6 6 12 12"/></>} {...props}/>,
+            ChevronDown: (props) => <IconBase p={<path d="m6 9 6 6 6-6"/>} {...props}/>,
+            ChevronUp: (props) => <IconBase p={<path d="m18 15-6-6-6 6"/>} {...props}/>,
+            Download: (props) => <IconBase p={<><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></>} {...props}/>,
+            Share: (props) => <IconBase p={<><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" x2="12" y1="2" y2="15"/></>} {...props}/>,
+            User: (props) => <IconBase p={<><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></>} {...props}/>,
+            LogOut: (props) => <IconBase p={<><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></>} {...props}/>,
+            AlertTriangle: (props) => <IconBase p={<><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></>} {...props}/>,
+            Settings: (props) => <IconBase p={<><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.09a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></>} {...props}/>,
             Google: (props) => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" {...props}><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
         };
 
-        const INITIAL_PRODUCTS = [];
+        const INITIAL_PRODUCTS = [
+            { id: '101', name: 'Cargando...', brand: '...', category: 'General', price: 0, plannedQty: 0, actualQty: 0 },
+        ];
 
-        // --- ERROR BOUNDARY ---
         class ErrorBoundary extends React.Component {
             constructor(props) { super(props); this.state = { hasError: false, error: null }; }
             static getDerivedStateFromError(error) { return { hasError: true, error }; }
+            
+            copyError = () => {
+                const el = document.createElement('textarea');
+                el.value = this.state.error?.toString();
+                document.body.appendChild(el);
+                el.select();
+                document.execCommand('copy');
+                document.body.removeChild(el);
+                alert("Error copiado");
+            }
+
             render() {
                 if (this.state.hasError) return (
                     <div className="flex flex-col items-center justify-center h-screen p-6 text-center bg-gray-50">
                         <Icons.AlertTriangle className="text-red-500 w-12 h-12 mx-auto mb-4" />
                         <h2 className="text-xl font-bold text-gray-800 mb-2">Algo salió mal</h2>
                         <p className="text-xs text-red-600 mb-4 font-mono bg-red-50 p-2 rounded max-w-full overflow-auto">{this.state.error?.toString()}</p>
-                        <button onClick={()=>{localStorage.clear(); window.location.reload()}} className="bg-red-500 text-white px-6 py-2 rounded-lg font-bold shadow hover:bg-red-600 transition">Reiniciar App</button>
+                        <button onClick={this.copyError} className="bg-blue-600 text-white px-4 py-2 rounded font-bold mb-2">COPIAR ERROR</button>
+                        <button onClick={()=>{localStorage.clear(); window.location.reload()}} className="bg-gray-200 text-gray-700 px-4 py-2 rounded font-bold">REINICIAR</button>
                     </div>
                 );
                 return this.props.children;
@@ -128,7 +158,6 @@
             const [isDemo, setIsDemo] = useState(false);
             const [isLoggingIn, setIsLoggingIn] = useState(false);
 
-            // UI
             const [filter, setFilter] = useState('Todos'); 
             const [brandFilter, setBrandFilter] = useState('Todas');
             const [showBrandFilter, setShowBrandFilter] = useState(false);
@@ -194,7 +223,7 @@
             const handleLogin = async () => {
                 if(isLoggingIn) return; setIsLoggingIn(true);
                 try { await auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()); } 
-                catch(e) { alert("Error: "+e.message); setIsDemo(true); setUser({uid:'demo', displayName:'Invitado'}); setView('list'); } finally { setIsLoggingIn(false); }
+                catch(e) { alert("Error Login Google: " + e.message); setIsLoggingIn(false); } 
             };
             const handleAnon = async () => {
                 try { await auth.signInAnonymously(); } catch(e) { alert(e.message); }
@@ -205,9 +234,10 @@
                 setProducts(p => p.map(i => i.id === id ? {...i, ...data} : i));
                 if(user && !isDemo) db.collection(`users/${user.uid}/products`).doc(id).update(data);
             };
-            const addProd = (item) => {
+            const handleAddProduct = (item) => {
                 setProducts(p => [item, ...p]);
                 if(user && !isDemo) db.collection(`users/${user.uid}/products`).add(item);
+                setStatusMsg('Agregado'); setTimeout(()=>setStatusMsg(''), 2000);
             };
             const deleteProd = async (id) => {
                 setProducts(p => p.filter(i => i.id !== id));
@@ -225,6 +255,15 @@
                      localStorage.removeItem('imported_'+user.uid);
                 }
             };
+            const handleResetPlan = async () => {
+                if(!confirm("¿Resetear Plan?")) return;
+                const batch = db.batch();
+                products.forEach(p => {
+                    if(p.plannedQty > 0) batch.update(db.collection(`users/${user.uid}/products`).doc(p.id), {plannedQty: 0});
+                });
+                await batch.commit();
+                setShowSettings(false);
+            }
 
             const autoImport = async (uid) => {
                 try {
@@ -278,15 +317,6 @@
                  setStatusMsg("Importando..."); setShowSettings(false);
                  await autoImport(user.uid);
             };
-            const handleResetPlan = async () => {
-                if(!confirm("¿Resetear Plan?")) return;
-                const batch = db.batch();
-                products.forEach(p => {
-                    if(p.plannedQty > 0) batch.update(db.collection(`users/${user.uid}/products`).doc(p.id), {plannedQty: 0});
-                });
-                await batch.commit();
-                setShowSettings(false);
-            }
 
             const finishPurchase = async () => {
                 const bought = products.filter(p=>p.actualQty>0);
@@ -320,8 +350,8 @@
             const handleAddItem = (e) => {
                 e.preventDefault(); const fd = new FormData(e.target);
                 const num = s => parseFloat(String(s).replace(/\./g,'').replace(',','.')) || 0;
-                addProd({ name: fd.get('name'), brand: fd.get('brand')||'Genérico', category: fd.get('cat')||'Varios', price: num(fd.get('price')), plannedQty: 0, actualQty: 1 });
-                setShowAddModal(false); setStatusMsg('Agregado'); setTimeout(()=>setStatusMsg(''), 2000);
+                handleAddProduct({ name: fd.get('name'), brand: fd.get('brand')||'Genérico', category: fd.get('cat')||'Varios', price: num(fd.get('price')), plannedQty: 0, actualQty: 1 });
+                setShowAddModal(false); 
             };
 
             const copyToClip = () => {
@@ -335,7 +365,7 @@
                 <div className="h-screen bg-gradient-to-b from-blue-900 to-blue-700 flex flex-col items-center justify-center p-8 text-white text-center">
                     <img src="https://i.imgur.com/23tlEnQ.jpeg" className="w-40 rounded-3xl shadow-xl mb-8"/>
                     <button onClick={handleLogin} disabled={isLoggingIn} className={`bg-white text-gray-800 w-full py-4 rounded-xl font-bold shadow-lg flex items-center justify-center gap-3 active:scale-95 transition ${isLoggingIn?'opacity-70':''}`}>
-                        {Icons.Google({size:24})} {isLoggingIn ? 'Iniciando...' : 'Continuar con Google'}
+                        <Icons.Google size={24}/> {isLoggingIn ? 'Iniciando...' : 'Continuar con Google'}
                     </button>
                     <button onClick={handleAnon} disabled={isLoggingIn} className="mt-4 text-sm text-blue-300 underline hover:text-white">Invitado</button>
                 </div>
@@ -354,9 +384,9 @@
                         <div className="flex justify-between items-center px-4 py-2 bg-white overflow-hidden">
                             <div className="h-14 w-40 overflow-hidden flex items-center -ml-3"><img src="https://i.imgur.com/23tlEnQ.jpeg" className="h-full w-full object-contain scale-[1.8]" /></div>
                             <div className="flex gap-2 items-center">
-                                {view === 'list' && <div className="flex items-center gap-2"><button onClick={()=>{if(deferredPrompt){deferredPrompt.prompt(); deferredPrompt.userChoice.then(r=>{if(r.outcome==='accepted')setDeferredPrompt(null)})} else setShowInstallModal(true)}} className="bg-gray-100 text-blue-600 text-[10px] font-bold px-3 py-1.5 rounded-full flex items-center gap-1 border hover:bg-gray-200">{Icons.Download({size:14})} <span>App</span></button><div className="flex items-center bg-gray-50 rounded-lg p-1 px-3 border shadow-sm"><div className="flex flex-col items-end mr-3"><span className="text-[9px] text-gray-500 font-bold uppercase">Plan</span><span className="text-sm font-medium">${totalPlan.toLocaleString('es-AR')}</span></div><div className="w-px h-6 bg-gray-300"></div><div className="flex flex-col items-end ml-3"><span className="text-[10px] text-blue-600 font-black uppercase">Carrito</span><span className="text-2xl font-black text-blue-900 leading-none">${totalCart.toLocaleString('es-AR')}</span></div></div><button onClick={finishPurchase} className="bg-blue-600 text-white p-2 rounded-full shadow active:scale-95">{Icons.Save({size:18})}</button></div>}
-                                {view === 'history' && <div className="text-xs font-bold text-green-600 flex items-center gap-1 bg-green-50 px-3 py-1 rounded border border-green-100">{Icons.Database({size:14})} En Línea</div>}
-                                <button onClick={()=>setShowSettings(true)} className="p-2 text-gray-400 hover:text-gray-600">{Icons.Settings({size:20})}</button>
+                                {view === 'list' && <div className="flex items-center gap-2"><button onClick={()=>{if(deferredPrompt){deferredPrompt.prompt(); deferredPrompt.userChoice.then(r=>{if(r.outcome==='accepted')setDeferredPrompt(null)})} else setShowInstallModal(true)}} className="bg-gray-100 text-blue-600 text-[10px] font-bold px-3 py-1.5 rounded-full flex items-center gap-1 border hover:bg-gray-200"><Icons.Download size={14}/> <span>App</span></button><div className="flex items-center bg-gray-50 rounded-lg p-1 px-3 border shadow-sm"><div className="flex flex-col items-end mr-3"><span className="text-[9px] text-gray-500 font-bold uppercase">Plan</span><span className="text-sm font-medium">${totalPlan.toLocaleString('es-AR')}</span></div><div className="w-px h-6 bg-gray-300"></div><div className="flex flex-col items-end ml-3"><span className="text-[10px] text-blue-600 font-black uppercase">Carrito</span><span className="text-2xl font-black text-blue-900 leading-none">${totalCart.toLocaleString('es-AR')}</span></div></div><button onClick={finishPurchase} className="bg-blue-600 text-white p-2 rounded-full shadow active:scale-95"><Icons.Save size={18}/></button></div>}
+                                {view === 'history' && <div className="text-xs font-bold text-green-600 flex items-center gap-1 bg-green-50 px-3 py-1 rounded border border-green-100"><Icons.Database size={14}/> En Línea</div>}
+                                <button onClick={()=>setShowSettings(true)} className="p-2 text-gray-400 hover:text-gray-600"><Icons.Settings size={20}/></button>
                             </div>
                         </div>
                         {view === 'list' && user && <div className="bg-blue-50 px-4 py-1 text-[10px] text-blue-800 font-bold flex justify-between"><span>Hola, {user.displayName ? user.displayName.split(' ')[0] : 'Invitado'} 👋</span><span>{isDemo ? 'MODO TEST' : 'NUBE'}</span></div>}
@@ -368,11 +398,11 @@
                                 <div className="bg-white p-3 border-b flex flex-col gap-3">
                                     <AdBanner />
                                     <div className="flex gap-2">
-                                        <button onClick={()=>setIsLocked(!isLocked)} className={`w-10 h-10 flex items-center justify-center rounded-lg border ${isLocked?'bg-orange-50 text-orange-600':'bg-gray-50 text-gray-400'}`}>{isLocked?Icons.Lock({size:18}):Icons.Unlock({size:18})}</button>
-                                        <div className="relative flex-1"><span className="absolute left-3 top-2 text-gray-400">{Icons.Search({size:16})}</span><input className="w-full h-10 pl-9 pr-3 rounded-lg border bg-gray-50 focus:bg-white outline-none text-sm" placeholder="Buscar..." onChange={e=>setSearchTerm(e.target.value)}/></div>
-                                        {!isDemo && <button onClick={()=>setShowAddModal(true)} className="bg-blue-600 text-white w-10 rounded flex items-center justify-center shadow"><Icons.Plus({size:18})/></button>}
-                                        <button onClick={()=>setShowBrandFilter(!showBrandFilter)} className={`w-10 h-10 rounded-lg border flex items-center justify-center ${showBrandFilter?'bg-blue-100':'bg-white'}`}>{Icons.Filter({size:18})}</button>
-                                        <button onClick={()=>{if(confirm('Limpiar cantidades?')) products.forEach(p=>p.actualQty>0 && updateProd(p.id, {actualQty:0}))}} className="w-10 h-10 text-gray-400 hover:text-red-500 flex items-center justify-center">{Icons.Trash({size:18})}</button>
+                                        <button onClick={()=>setIsLocked(!isLocked)} className={`w-10 h-10 flex items-center justify-center rounded-lg border ${isLocked?'bg-orange-50 text-orange-600':'bg-gray-50 text-gray-400'}`}>{isLocked?<Icons.Lock size={18}/>:<Icons.Unlock size={18}/>}</button>
+                                        <div className="relative flex-1"><span className="absolute left-3 top-2 text-gray-400"><Icons.Search size={16}/></span><input className="w-full h-10 pl-9 pr-3 rounded-lg border bg-gray-50 focus:bg-white outline-none text-sm" placeholder="Buscar..." onChange={e=>setSearchTerm(e.target.value)}/></div>
+                                        <button onClick={()=>setShowAddModal(true)} className="bg-blue-600 text-white w-10 rounded flex items-center justify-center shadow"><Icons.Plus size={18}/></button>
+                                        <button onClick={()=>setShowBrandFilter(!showBrandFilter)} className={`w-10 h-10 rounded-lg border flex items-center justify-center ${showBrandFilter?'bg-blue-100':'bg-white'}`}><Icons.Filter size={18}/></button>
+                                        <button onClick={()=>{if(confirm('Limpiar cantidades?')) products.forEach(p=>p.actualQty>0 && updateProd(p.id, {actualQty:0}))}} className="w-10 h-10 text-gray-400 hover:text-red-500 flex items-center justify-center"><Icons.Trash size={18}/></button>
                                     </div>
                                     {showBrandFilter && <div className="px-3 py-2 bg-blue-50 border-b"><select onChange={e=>setBrandFilter(e.target.value)} className="w-full p-2 text-sm border rounded"><option value="Todas">Todas las marcas</option>{brands.map(b=><option key={b} value={b}>{b}</option>)}</select></div>}
                                     <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">{cats.map(c=><button key={c} onClick={()=>setFilter(c)} className={`px-3 py-1 rounded-full text-xs font-bold whitespace-nowrap transition-colors ${filter===c?'bg-blue-600 text-white':'bg-gray-100 text-gray-600'}`}>{c}</button>)}</div>
@@ -384,20 +414,20 @@
                                             <div className="flex-1 min-w-0 pr-2">
                                                 <div className="flex items-center justify-between">
                                                     <div className="font-bold text-gray-800 text-lg truncate">{p.name}</div>
-                                                    {isAdmin && !isLocked && <button onClick={()=>setShowDeleteConfirm(p.id)} className="text-gray-300 hover:text-red-500 p-1">{Icons.X({size:14})}</button>}
+                                                    {!isLocked && isAdmin && <button onClick={()=>setShowDeleteConfirm(p.id)} className="text-gray-300 hover:text-red-500 p-1"><Icons.X size={14}/></button>}
                                                 </div>
                                                 <div className="text-xs text-gray-500 truncate">{p.brand} • {p.category}</div>
                                                 <div className="flex items-center mt-1"><span className="text-sm text-gray-400 mr-1">$</span><input type="number" className="font-bold text-gray-700 w-20 bg-transparent border-b border-dashed outline-none" value={p.price} onChange={e=>updateProd(p.id, {price: Number(e.target.value)})}/></div>
                                             </div>
                                             <div className={`w-16 flex items-center justify-center border-x px-1 ${isLocked?'opacity-40':''}`}>
-                                                <button onClick={()=>{const n=Math.max(0,(p.plannedQty||0)-1); updateProd(p.id,{plannedQty:n})}} className="px-1 text-gray-400">{Icons.Minus({size:12})}</button>
+                                                <button onClick={()=>{const n=Math.max(0,(p.plannedQty||0)-1); updateProd(p.id,{plannedQty:n})}} className="px-1 text-gray-400"><Icons.Minus size={12}/></button>
                                                 <span className="font-bold text-gray-600 w-6 text-center text-lg">{p.plannedQty||0}</span>
-                                                <button onClick={()=>{const n=(p.plannedQty||0)+1; updateProd(p.id,{plannedQty:n})}} className="px-1 text-gray-400">{Icons.Plus({size:12})}</button>
+                                                <button onClick={()=>{const n=(p.plannedQty||0)+1; updateProd(p.id,{plannedQty:n})}} className="px-1 text-gray-400"><Icons.Plus size={12}/></button>
                                             </div>
                                             <div className="w-28 flex items-center justify-between pl-3">
-                                                <button onClick={()=>{const n=Math.max(0,(p.actualQty||0)-1); updateProd(p.id,{actualQty:n})}} className="w-10 h-10 bg-white border rounded shadow-sm flex items-center justify-center text-gray-600">{Icons.Minus({size:18})}</button>
+                                                <button onClick={()=>{const n=Math.max(0,(p.actualQty||0)-1); updateProd(p.id,{actualQty:n})}} className="w-10 h-10 bg-white border rounded shadow-sm flex items-center justify-center text-gray-600"><Icons.Minus size={18}/></button>
                                                 <span className={`text-xl font-bold ${p.actualQty>0?'text-green-600':'text-gray-300'}`}>{p.actualQty||0}</span>
-                                                <button onClick={()=>{const n=(p.actualQty||0)+1; updateProd(p.id,{actualQty:n})}} className="w-10 h-10 bg-blue-600 text-white rounded shadow-md flex items-center justify-center active:scale-95">{Icons.Plus({size:18})}</button>
+                                                <button onClick={()=>{const n=(p.actualQty||0)+1; updateProd(p.id,{actualQty:n})}} className="w-10 h-10 bg-blue-600 text-white rounded shadow-md flex items-center justify-center active:scale-95"><Icons.Plus size={18}/></button>
                                             </div>
                                         </div>
                                     ))}
@@ -409,33 +439,20 @@
                         )}
                     </div>
 
-                    {showAddModal && <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4"><form onSubmit={handleAddItem} className="bg-white p-5 rounded-xl w-full max-w-xs shadow-2xl space-y-3"><div className="flex justify-between items-center"><h3 className="font-bold text-lg">Agregar</h3><button type="button" onClick={()=>setShowAddModal(false)}>{Icons.X({size:20})}</button></div><input name="name" className="w-full border p-2 rounded" placeholder="Nombre" required autoFocus/><div className="flex gap-2"><input name="brand" className="w-full border p-2 rounded" placeholder="Marca"/><input name="price" type="number" className="w-full border p-2 rounded" placeholder="Precio"/></div><select name="cat" className="w-full border p-2 rounded"><option value="Varios">Varios</option>{['Almacén','Bebidas','Limpieza','Perfumería','Frescos'].map(c=><option key={c} value={c}>{c}</option>)}</select><button className="w-full bg-blue-600 text-white font-bold py-3 rounded">Guardar</button></form></div>}
+                    {showAddModal && <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4"><form onSubmit={handleAddItem} className="bg-white p-5 rounded-xl w-full max-w-xs shadow-2xl space-y-3"><div className="flex justify-between items-center"><h3 className="font-bold text-lg">Agregar</h3><button type="button" onClick={()=>setShowAddModal(false)}><Icons.X size={20}/></button></div><input name="name" className="w-full border p-2 rounded" placeholder="Nombre" required autoFocus/><div className="flex gap-2"><input name="brand" className="w-full border p-2 rounded" placeholder="Marca"/><input name="price" type="number" className="w-full border p-2 rounded" placeholder="Precio"/></div><select name="cat" className="w-full border p-2 rounded"><option value="Varios">Varios</option>{['Almacén','Bebidas','Limpieza','Perfumería','Frescos'].map(c=><option key={c} value={c}>{c}</option>)}</select><button className="w-full bg-blue-600 text-white font-bold py-3 rounded">Guardar</button></form></div>}
 
-                    {/* CONFIRM DELETE MODAL */}
-                    {showDeleteConfirm && (
-                        <div className="fixed inset-0 z-[70] bg-black/50 flex items-center justify-center p-6">
-                            <div className="bg-white rounded-xl p-6 max-w-xs text-center shadow-2xl border-t-4 border-red-500">
-                                {Icons.AlertTriangle({size:40, className:"mx-auto text-red-500 mb-4"})}
-                                <h3 className="font-bold text-lg text-gray-800 mb-2">¿Eliminar Producto?</h3>
-                                <p className="text-sm text-gray-600 mb-6">Esta acción borrará el producto permanentemente.</p>
-                                <div className="flex gap-3">
-                                    <button onClick={()=>setShowDeleteConfirm(null)} className="flex-1 py-2 border rounded font-bold text-gray-600">Cancelar</button>
-                                    <button onClick={()=>deleteProd(showDeleteConfirm)} className="flex-1 py-2 bg-red-600 text-white rounded font-bold shadow">ELIMINAR</button>
-                                </div>
-                            </div>
-                        </div>
-                    )}
+                    {showDeleteConfirm && <div className="fixed inset-0 z-[70] bg-black/50 flex items-center justify-center p-6"><div className="bg-white rounded-xl p-6 max-w-xs text-center shadow-2xl border-t-4 border-red-500"><Icons.AlertTriangle size={40} className="mx-auto text-red-500 mb-4"/><h3 className="font-bold text-lg text-gray-800 mb-2">¿Eliminar Producto?</h3><p className="text-sm text-gray-600 mb-6">Esta acción borrará el producto de la Base de Datos permanentemente.</p><div className="flex gap-3"><button onClick={()=>setShowDeleteConfirm(null)} className="flex-1 py-2 border rounded font-bold text-gray-600">Cancelar</button><button onClick={()=>deleteProd(showDeleteConfirm)} className="flex-1 py-2 bg-red-600 text-white rounded font-bold shadow">ELIMINAR</button></div></div></div>}
 
-                    {showSettings && <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4"><div className="bg-white rounded-xl w-full max-w-sm p-5 space-y-3"><div className="flex justify-between mb-4"><h3 className="font-bold">Ajustes</h3><button onClick={()=>setShowSettings(false)}>{Icons.X({size:20})}</button></div><div className="text-xs text-gray-500 bg-gray-50 p-2 rounded">ID: {user.uid}</div>{isAdmin && <button onClick={handleAdminImport} className="w-full py-3 bg-green-600 text-white rounded font-bold flex justify-center gap-2">{Icons.Download({size:18})} Sincronizar Sheet</button>}{isAdmin && <button onClick={handleResetPlan} className="w-full py-3 border border-orange-200 text-orange-600 rounded font-bold flex justify-center gap-2">{Icons.Plus({size:18})} Reset Plan</button>}{isAdmin && <button onClick={cleanDB} className="w-full py-3 border text-red-600 font-bold flex justify-center gap-2">{Icons.Trash({size:18})} Resetear DB</button>}<button onClick={handleLogout} className="w-full py-3 border font-bold flex justify-center gap-2">{Icons.LogOut({size:18})} Salir</button></div></div>}
+                    {showSettings && <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4"><div className="bg-white rounded-xl w-full max-w-sm p-5 space-y-3"><div className="flex justify-between mb-4"><h3 className="font-bold">Ajustes</h3><button onClick={()=>setShowSettings(false)}><Icons.X size={20}/></button></div><div className="text-xs text-gray-500 bg-gray-50 p-2 rounded">ID: {user.uid}</div>{isAdmin && <button onClick={handleAdminImport} className="w-full py-3 bg-green-600 text-white rounded font-bold flex justify-center gap-2"><Icons.Download size={18}/> Sincronizar Sheet</button>}{isAdmin && <button onClick={handleResetPlan} className="w-full py-3 border border-orange-200 text-orange-600 rounded font-bold flex justify-center gap-2 mb-2"><Icons.List size={18}/> Reset Plan</button>}{isAdmin && <button onClick={cleanDB} className="w-full py-3 border text-red-600 font-bold flex justify-center gap-2"><Icons.Trash size={18}/> Resetear DB</button>}<button onClick={handleLogout} className="w-full py-3 border font-bold flex justify-center gap-2"><Icons.LogOut size={18}/> Salir</button></div></div>}
                     
-                    {showInstallModal && <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-6 animate-fade-in" onClick={() => setShowInstallModal(false)}><div className="bg-white rounded-xl p-6 max-w-sm text-center shadow-2xl relative" onClick={e => e.stopPropagation()}><button onClick={() => setShowInstallModal(false)} className="absolute top-2 right-2 text-gray-400">{Icons.X({size:20})}</button><h3 className="text-lg font-bold text-gray-800 mb-2">Instalar Nini App</h3><p className="text-sm text-gray-600 mb-4">Para instalar esta web como una App en tu iPhone:</p><div className="space-y-3 text-sm text-left bg-gray-50 p-4 rounded-lg"><div className="flex items-center gap-3">{Icons.Share({size:20})} <span>1. Toca el botón <b>Compartir</b> abajo.</span></div><div className="flex items-center gap-3">{Icons.Plus({size:20})} <span>2. Elige <b>"Agregar a Inicio"</b>.</span></div></div></div></div>}
+                    {showInstallModal && <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-6 animate-fade-in" onClick={() => setShowInstallModal(false)}><div className="bg-white rounded-xl p-6 max-w-sm text-center shadow-2xl relative" onClick={e => e.stopPropagation()}><button onClick={() => setShowInstallModal(false)} className="absolute top-2 right-2 text-gray-400"><Icons.X size={20}/></button><h3 className="text-lg font-bold text-gray-800 mb-2">Instalar Nini App</h3><p className="text-sm text-gray-600 mb-4">Para instalar esta web como una App en tu iPhone:</p><div className="space-y-3 text-sm text-left bg-gray-50 p-4 rounded-lg"><div className="flex items-center gap-3"><Icons.Share size={20} className="text-blue-500"/> <span>1. Toca el botón <b>Compartir</b> abajo.</span></div><div className="flex items-center gap-3"><Icons.Plus size={20} className="text-gray-600 border border-gray-400 rounded p-0.5"/> <span>2. Elige <b>"Agregar a Inicio"</b>.</span></div></div></div></div>}
 
-                    {showExportModal && <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"><div className="bg-white rounded-xl shadow-xl w-full max-w-md flex flex-col max-h-[80vh]"><div className="p-4 border-b flex justify-between"><h3 className="font-bold">Copiar al Excel</h3><button onClick={() => setShowExportModal(false)}>{Icons.X({size:20})}</button></div><div className="p-4 flex-1 bg-gray-50"><textarea id="exportarea" readOnly value={exportContent} className="w-full h-32 p-2 text-xs border rounded mb-2" onClick={e => e.target.select()} /><button onClick={copyToClip} className="w-full py-2 bg-green-600 text-white font-bold rounded">COPIAR AHORA</button></div><div className="p-4 border-t"><button onClick={() => { setProducts(prev => prev.map(p => ({...p, actualQty:0}))); setShowExportModal(false); }} className="w-full py-2 text-blue-600 font-bold border border-blue-600 rounded">Limpiar Carrito</button></div></div></div>}
+                    {showExportModal && <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"><div className="bg-white rounded-xl shadow-xl w-full max-w-md flex flex-col max-h-[80vh]"><div className="p-4 border-b flex justify-between"><h3 className="font-bold">Copiar al Excel</h3><button onClick={() => setShowExportModal(false)}><Icons.X size={20}/></button></div><div className="p-4 flex-1 bg-gray-50"><textarea id="exportarea" readOnly value={exportContent} className="w-full h-32 p-2 text-xs border rounded mb-2" onClick={e => e.target.select()} /><button onClick={copyToClip} className="w-full py-2 bg-green-600 text-white font-bold rounded">COPIAR AHORA</button></div><div className="p-4 border-t"><button onClick={() => { setProducts(prev => prev.map(p => ({...p, actualQty:0}))); setShowExportModal(false); }} className="w-full py-2 text-blue-600 font-bold border border-blue-600 rounded">Limpiar Carrito</button></div></div></div>}
 
                     <div className="fixed bottom-0 w-full flex justify-around items-center pb-safe z-50 h-16 shadow-lg" style={{ backgroundColor: COLORS.blue }}>
-                        <button onClick={() => setView('list')} className={`flex flex-col items-center justify-center w-full h-full ${view === 'list' ? 'text-white' : 'text-white/50'}`}>{Icons.List({size:24})}<span className="text-[10px] font-bold mt-1">Lista</span></button>
+                        <button onClick={() => setView('list')} className={`flex flex-col items-center justify-center w-full h-full ${view === 'list' ? 'text-white' : 'text-white/50'}`}><Icons.List size={24} strokeWidth={2.5} /><span className="text-[10px] font-bold mt-1">Lista</span></button>
                         <div className="w-px h-8 bg-white/20"></div>
-                        <button onClick={() => setView('history')} className={`flex flex-col items-center justify-center w-full h-full ${view === 'history' ? 'text-white' : 'text-white/50'}`}>{Icons.PieChart({size:24})}<span className="text-[10px] font-bold mt-1">Historial</span></button>
+                        <button onClick={() => setView('history')} className={`flex flex-col items-center justify-center w-full h-full ${view === 'history' ? 'text-white' : 'text-white/50'}`}><Icons.PieChart size={24} strokeWidth={2.5} /><span className="text-[10px] font-bold mt-1">Historial</span></button>
                     </div>
 
                     {statusMsg && <div className="fixed top-24 left-1/2 -translate-x-1/2 bg-black/80 text-white text-xs px-4 py-2 rounded-full shadow-lg z-50">{statusMsg}</div>}
@@ -465,10 +482,10 @@
                     if(h.items) h.items.forEach(i => {
                         const sub = (i.actualQty||0)*(i.price||0);
                         map[i.category] = (map[i.category] || 0) + sub;
-                        total += sub;
+                        tot += sub;
                     });
                 });
-                return Object.entries(map).map(([k,v]) => ({name:k, value:v, percent: total ? (v/total)*100 : 0})).sort((a,b)=>b.value-a.value);
+                return Object.entries(map).map(([k,v]) => ({name:k, value:v, percent: tot ? (v/tot)*100 : 0})).sort((a,b)=>b.value-a.value);
             }, [history, filterDate]);
 
             const monthlyData = useMemo(() => {
@@ -488,7 +505,7 @@
             return (
                 <div className="p-4 space-y-6 pb-24">
                     <div className="bg-white rounded-xl shadow border p-4">
-                        <div className="flex justify-between mb-4"><h3 className="font-bold text-gray-700 flex gap-2 text-blue-600">{Icons.PieChart({size:18})} Gasto Rubro</h3>
+                        <div className="flex justify-between mb-4"><h3 className="font-bold text-gray-700 flex gap-2 text-blue-600"><Icons.PieChart size={18} className="text-blue-500"/> Gasto Rubro</h3>
                         <div className="relative"><select onChange={e=>setFilterDate(e.target.value)} className="text-xs border rounded bg-gray-50"><option value="all">Todo el Año</option>{availableMonths.map(m=><option key={m.v} value={m.v}>{m.l}</option>)}</select></div></div>
                         <div className="flex items-center gap-4"><div className="w-32 h-32 rounded-full flex items-center justify-center flex-col shadow-inner" style={{background: `conic-gradient(${pieGrad})`}}><div className="bg-white w-24 h-24 rounded-full flex flex-col items-center justify-center shadow-sm"><span className="text-[9px] text-gray-400">TOTAL</span><span className="text-xs font-bold">${Math.round(pieData.reduce((a,b)=>a+b.value,0)).toLocaleString('es-AR')}</span></div></div><div className="flex-1 space-y-1">{pieData.slice(0,5).map((c,i)=>(<div key={i} className="flex justify-between text-xs"><span>{c.name}</span><span className="font-bold">{Math.round(c.percent)}%</span></div>))}</div></div>
                     </div>
@@ -502,7 +519,7 @@
                             <div key={h.id} className="border-b last:border-0">
                                 <div onClick={()=>setExpandedId(expandedId===h.id?null:h.id)} className="px-4 py-3 flex justify-between items-center hover:bg-gray-50 cursor-pointer">
                                     <div><div className="font-bold text-sm">{new Date(h.date).toLocaleDateString('es-AR')}</div><div className="text-xs text-gray-400">{h.items.length} items</div></div>
-                                    <div className="flex items-center gap-2"><span className="font-bold text-blue-600">${h.total.toLocaleString('es-AR')}</span>{Icons.ChevronDown({size:16})}</div>
+                                    <div className="flex items-center gap-2"><span className="font-bold text-blue-600">${h.total.toLocaleString('es-AR')}</span><Icons.ChevronDown size={16}/></div>
                                 </div>
                                 {expandedId === h.id && <div className="bg-gray-50 p-3 text-xs border-t">{h.items.map((i,x)=><div key={x} className="flex justify-between mb-1 pb-1 border-b border-dashed last:border-0 pb-1"><span>{i.actualQty}x {i.name}</span><span>${i.price}</span></div>)}</div>}
                             </div>
