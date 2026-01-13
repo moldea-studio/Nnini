@@ -11,6 +11,24 @@
     <link rel="apple-touch-icon" href="https://i.imgur.com/23tlEnQ.jpeg">
     <link rel="manifest" href="data:application/manifest+json;base64,ewogICJuYW1lIjogIk5pbmkgQ2xvdWQiLAogICJzaG9ydF9uYW1lIjogIk5pbmkiLAogICJzdGFydF91cmwiOiAiLiIsCiAgImRpc3BsYXkiOiAic3RhbmRhbG9uZSIsCiAgImJhY2tncm91bmRfY29sb3IiOiAiIzAwNGFhZCIsCiAgImljb25zIjogWwogICAgewogICAgICAic3JjIjogImh0dHBzOi8vaS5pbWd1ci5jb20vMjN0bEVuUS5qcGVnIiwKICAgICAgInNpemVzIjogIjUxMng1MTIiLAogICAgICAidHlwZSI6ICJpbWFnZS9qcGVnIgogICAgfQogIF0KfQ==">
 
+    <!-- PANTALLA DE ERROR DE EMERGENCIA -->
+    <script>
+        window.onerror = function(msg, url, line, col, error) {
+            const root = document.getElementById('root');
+            if(root && (!root.innerHTML || root.innerHTML.includes('loader'))) {
+                root.innerHTML = `
+                    <div style="height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:20px; font-family:sans-serif; text-align:center; background:#fff5f5;">
+                        <h2 style="color:#e31d2b; font-weight:bold; margin-bottom:10px;">¡Error Crítico!</h2>
+                        <div style="background:white; border:1px solid #ffcccc; padding:15px; border-radius:8px; font-size:12px; color:#c00; margin-bottom:20px; text-align:left;">
+                            <strong>${msg}</strong><br>Línea: ${line}
+                        </div>
+                        <button onclick="localStorage.clear(); window.location.reload()" style="background:#004aad; color:white; border:none; padding:12px 24px; border-radius:8px; font-weight:bold; cursor:pointer;">Restablecer App</button>
+                    </div>
+                `;
+            }
+        };
+    </script>
+
     <script src="https://cdn.tailwindcss.com"></script>
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
@@ -109,6 +127,7 @@
 
         const INITIAL_PRODUCTS = [];
 
+        // --- ERROR BOUNDARY ---
         class ErrorBoundary extends React.Component {
             constructor(props) { super(props); this.state = { hasError: false, error: null }; }
             static getDerivedStateFromError(error) { return { hasError: true, error }; }
@@ -121,7 +140,7 @@
 
         const AdBanner = () => <div className="bg-white border-b border-gray-100 py-3 px-4 flex justify-center shrink-0"><div className="w-full max-w-sm h-12 bg-gray-100 rounded border border-dashed border-gray-300 flex items-center justify-center text-xs text-gray-400">ESPACIO PUBLICITARIO (ADS)</div></div>;
 
-        // --- SUBCOMPONENTES ---
+        // --- COMPONENTE AGREGAR / EDITAR PRODUCTO ---
         const ProductFormModal = ({ products, productToEdit, onClose, onSave, onDelete }) => {
             const [name, setName] = useState('');
             const [cat, setCat] = useState('');
@@ -168,12 +187,12 @@
                 <div className="fixed inset-0 z-[70] bg-black/50 flex items-center justify-center p-4">
                     <form onSubmit={handleSubmit} className="bg-white p-5 rounded-xl w-full max-w-xs shadow-2xl space-y-3">
                         <div className="flex justify-between items-center mb-2">
-                            <h3 className="font-bold text-lg">{productToEdit ? 'Editar Producto' : 'Nuevo Producto'}</h3>
+                            <h3 className="font-bold text-lg">{productToEdit ? 'Editar' : 'Nuevo'}</h3>
                             <button type="button" onClick={onClose}><Icons.X size={20}/></button>
                         </div>
                         <div><label className="text-xs font-bold text-gray-500">Nombre</label><input value={name} onChange={e=>setName(e.target.value)} className="w-full border p-2 rounded" required autoFocus/></div>
-                        <div><label className="text-xs font-bold text-gray-500">Rubro</label>{!isNewCat ? (<select value={cat} onChange={e=>{if(e.target.value==='NEW'){setIsNewCat(true);setCat('')}else setCat(e.target.value)}} className="w-full border p-2 rounded bg-white"><option value="" disabled>Seleccionar...</option>{existingCats.map(c=><option key={c} value={c}>{c}</option>)}<option value="NEW">+ Nuevo rubro...</option></select>) : (<div className="flex gap-1"><input value={cat} onChange={e=>setCat(e.target.value)} className="w-full border p-2 rounded" placeholder="Nombre del rubro" required/><button type="button" onClick={()=>setIsNewCat(false)} className="text-red-500 p-2"><Icons.X size={16}/></button></div>)}</div>
-                        <div><label className="text-xs font-bold text-gray-500">Marca</label>{!isNewBrand && existingBrands.length > 0 ? (<select value={brand} onChange={e=>{if(e.target.value==='NEW'){setIsNewBrand(true);setBrand('')}else setBrand(e.target.value)}} className="w-full border p-2 rounded bg-white"><option value="">Genérico / Sin Marca</option>{existingBrands.map(b=><option key={b} value={b}>{b}</option>)}<option value="NEW">+ Nueva marca...</option></select>) : (<div className="flex gap-1"><input value={brand} onChange={e=>setBrand(e.target.value)} className="w-full border p-2 rounded" placeholder="Marca (Opcional)" />{existingBrands.length > 0 && <button type="button" onClick={()=>setIsNewBrand(false)} className="text-red-500 p-2"><Icons.X size={16}/></button>}</div>)}</div>
+                        <div><label className="text-xs font-bold text-gray-500">Rubro</label>{!isNewCat ? (<select value={cat} onChange={e=>{if(e.target.value==='NEW'){setIsNewCat(true);setCat('')}else setCat(e.target.value)}} className="w-full border p-2 rounded bg-white"><option value="" disabled>Seleccionar...</option>{existingCats.map(c=><option key={c} value={c}>{c}</option>)}<option value="NEW">+ Nuevo rubro...</option></select>) : (<div className="flex gap-1"><input value={cat} onChange={e=>setCat(e.target.value)} className="w-full border p-2 rounded" placeholder="Rubro" required/><button type="button" onClick={()=>setIsNewCat(false)} className="text-red-500 p-2"><Icons.X size={16}/></button></div>)}</div>
+                        <div><label className="text-xs font-bold text-gray-500">Marca</label>{!isNewBrand && existingBrands.length > 0 ? (<select value={brand} onChange={e=>{if(e.target.value==='NEW'){setIsNewBrand(true);setBrand('')}else setBrand(e.target.value)}} className="w-full border p-2 rounded bg-white"><option value="">Genérico</option>{existingBrands.map(b=><option key={b} value={b}>{b}</option>)}<option value="NEW">+ Nueva...</option></select>) : (<div className="flex gap-1"><input value={brand} onChange={e=>setBrand(e.target.value)} className="w-full border p-2 rounded" placeholder="Marca" />{existingBrands.length > 0 && <button type="button" onClick={()=>setIsNewBrand(false)} className="text-red-500 p-2"><Icons.X size={16}/></button>}</div>)}</div>
                         <div><label className="text-xs font-bold text-gray-500">Precio</label><input value={price} onChange={e=>setPrice(e.target.value)} type="number" className="w-full border p-2 rounded" placeholder="$0" /></div>
                         
                         <div className="flex gap-2 mt-2">
@@ -191,7 +210,77 @@
             );
         };
 
-        // --- APP ---
+        // --- COMPONENTE HISTORIAL ---
+        const HistoryView = ({ history }) => {
+            const [filterDate, setFilterDate] = useState('all');
+            const [expandedId, setExpandedId] = useState(null);
+
+            const availableMonths = useMemo(() => {
+                const unique = new Set();
+                history.forEach(h => {
+                    try {
+                        const d = new Date(h.date);
+                        if (!isNaN(d)) unique.add(JSON.stringify({ value: `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`, label: d.toLocaleString('es-AR', { month: 'long', year: 'numeric' }) }));
+                    } catch(e){}
+                });
+                return Array.from(unique).map(s => JSON.parse(s)).sort((a,b) => b.value.localeCompare(a.value));
+            }, [history]);
+
+            const pieData = useMemo(() => {
+                const source = filterDate === 'all' ? history : history.filter(h => h.date.startsWith(filterDate));
+                const map = {}; let tot = 0;
+                source.forEach(h => {
+                    if(h.items) h.items.forEach(i => {
+                        const sub = (i.actualQty||0)*(i.price||0);
+                        map[i.category] = (map[i.category] || 0) + sub;
+                        tot += sub;
+                    });
+                });
+                return Object.entries(map).map(([k,v]) => ({name:k, value:v, percent: tot ? (v/tot)*100 : 0})).sort((a,b)=>b.value-a.value);
+            }, [history, filterDate]);
+
+            const monthlyData = useMemo(() => {
+                const months = Array.from({length: 12}, (_, i) => ({ label: new Date(2024, i, 1).toLocaleString('es-AR', { month: 'short' }).toUpperCase(), total: 0 }));
+                history.forEach(h => { const d = new Date(h.date); if(!isNaN(d)) months[d.getMonth()].total += h.total; });
+                return months;
+            }, [history]);
+
+            const maxMonthly = Math.max(...monthlyData.map(d => d.total), 1);
+            const totalAnnual = monthlyData.reduce((acc, curr) => acc + curr.total, 0);
+            const pieGradient = pieData.length > 0 ? pieData.reduce((acc, cat, idx) => {
+                const prev = pieData.slice(0, idx).reduce((p, c) => p + c.percent, 0);
+                const color = COLORS.chartColors[idx % COLORS.chartColors.length];
+                return `${acc}, ${color} ${prev}% ${prev + cat.percent}%`;
+            }, '').slice(2) : '#ddd 0% 100%';
+
+            return (
+                <div className="p-4 space-y-6 pb-24">
+                    <div className="bg-white rounded-xl shadow border p-4">
+                        <div className="flex justify-between mb-4"><h3 className="font-bold text-gray-700 flex gap-2 text-blue-600"><Icons.PieChart size={18} className="text-blue-500"/> Gasto Rubro</h3>
+                        <div className="relative"><select onChange={e=>setFilterDate(e.target.value)} className="text-xs border rounded bg-gray-50"><option value="all">Todo el Año</option>{availableMonths.map(m=><option key={m.value} value={m.value}>{m.label}</option>)}</select></div></div>
+                        <div className="flex items-center gap-4"><div className="w-32 h-32 rounded-full flex items-center justify-center flex-col shadow-inner" style={{background: `conic-gradient(${pieGrad})`}}><div className="bg-white w-24 h-24 rounded-full flex flex-col items-center justify-center shadow-sm"><span className="text-[9px] text-gray-400">TOTAL</span><span className="text-xs font-bold">${Math.round(pieData.reduce((a,b)=>a+b.value,0)).toLocaleString('es-AR')}</span></div></div><div className="flex-1 space-y-1">{pieData.slice(0,5).map((c,i)=>(<div key={i} className="flex justify-between text-xs"><span>{c.name}</span><span className="font-bold">{Math.round(c.percent)}%</span></div>))}</div></div>
+                    </div>
+                    <div className="bg-white rounded-xl shadow border p-4">
+                        <div className="flex justify-between mb-4"><h3 className="font-bold text-gray-700">Anual</h3><span className="text-xs font-bold bg-blue-50 text-blue-600 px-2 py-1 rounded">${totalAnnual.toLocaleString('es-AR')}</span></div>
+                        <div className="flex items-end gap-1 h-32 border-b pb-2">{monthlyData.map((d,i)=>(<div key={i} className="flex-1 flex flex-col items-center gap-1 h-full justify-end group"><div className="w-full relative flex items-end justify-center h-full"><div className="w-full rounded-t-sm transition-all" style={{height: d.total>0?`${(d.total/maxMonthly)*100}%`:'4px', background: d.total>0?(i%2===0?COLORS.bar1:COLORS.bar2):COLORS.gray}}></div>{d.total > 0 && <div className="absolute -top-6 bg-black text-white text-[9px] px-1 rounded opacity-0 group-hover:opacity-100">${d.total.toLocaleString('es-AR')}</div>}</div><span className="text-[8px] font-bold text-gray-500">{d.label}</span></div>))}</div>
+                    </div>
+                    <div className="bg-white rounded-xl shadow border overflow-hidden">
+                        <div className="bg-gray-50 px-4 py-2 border-b font-bold text-xs text-gray-500">HISTORIAL</div>
+                        {history.map(h => (
+                            <div key={h.id} className="border-b last:border-0">
+                                <div onClick={()=>setExpandedId(expandedId===h.id?null:h.id)} className="px-4 py-3 flex justify-between items-center hover:bg-gray-50 cursor-pointer">
+                                    <div><div className="font-bold text-sm">{new Date(h.date).toLocaleDateString('es-AR')}</div><div className="text-xs text-gray-400">{(h.items||[]).length} items</div></div>
+                                    <div className="flex items-center gap-2"><span className="font-bold text-blue-600">${h.total}</span><Icons.ChevronDown size={16}/></div>
+                                </div>
+                                {expandedId === h.id && <div className="bg-gray-50 p-3 text-xs border-t">{(h.items||[]).map((i,x)=><div key={x} className="flex justify-between mb-1 pb-1 border-b border-dashed last:border-0 pb-1"><span>{i.actualQty}x {i.name}</span><span>${i.price}</span></div>)}</div>}
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            );
+        };
+
+        // --- APP PRINCIPAL ---
         function App() {
             const [user, setUser] = useState(null);
             const [view, setView] = useState('login'); 
@@ -233,51 +322,41 @@
                     if(u) {
                         setView('list');
                         setViewTargetUid(u.uid);
-                        // Safe access to u.uid
-                        if (u.uid && u.uid.length >= 6) {
-                            const code = u.uid.slice(0,6).toUpperCase();
-                            setMyShareCode(code);
-                            // Registro de código público separado para evitar race conditions
-                        }
+                        const code = u.uid.slice(0,6).toUpperCase();
+                        setMyShareCode(code);
+                        db.collection('public_codes').doc(code).set({ uid: u.uid, name: u.displayName || 'Anon' });
                     } else { setView('login'); }
                 });
                 return () => unsub();
             }, []);
 
-            // Efecto separado para registrar código público cuando el usuario ya está cargado
-            useEffect(() => {
-                if (user && user.uid && !isDemo) {
-                     const code = user.uid.slice(0,6).toUpperCase();
-                     db.collection('public_codes').doc(code).set({ 
-                         uid: user.uid, 
-                         name: user.displayName || 'Anon' 
-                     }, { merge: true }).catch(err => console.log("Public code reg error (harmless)", err));
-                }
-            }, [user, isDemo]);
-
-
             useEffect(() => {
                 if(!user || isDemo) return;
                 const targetUid = viewTargetUid || user.uid;
 
+                // 1. CATALOGO GLOBAL
                 const unsubGlobal = db.collection('global_products').onSnapshot(snap => {
                     const items = snap.docs.map(d => ({id: d.id, ...d.data(), isGlobal: true}));
                     setGlobalProducts(items);
                 });
 
-                const unsubUserProd = db.collection(`users/${targetUid}/products`).onSnapshot(snap => {
-                    const items = snap.docs.map(d => ({id: d.id, ...d.data(), isGlobal: false}));
-                    setUserProducts(items);
-                });
-
+                // 2. CARRITO PRIVADO
                 const unsubCart = db.collection(`users/${targetUid}/cart`).doc('main').onSnapshot(snap => {
                     if(snap.exists) setCart(snap.data()); else setCart({});
                 });
 
+                // 3. HISTORIAL PRIVADO
                 const unsubHist = db.collection(`users/${targetUid}/history`).orderBy("date", "desc").onSnapshot(snap => {
                     setHistory(snap.docs.map(d => ({id: d.id, ...d.data()})));
                 }, err => {});
                 
+                // 4. PRODUCTOS USUARIO (Personal)
+                const unsubUserProd = db.collection(`users/${targetUid}/products`).onSnapshot(snap => {
+                     const items = snap.docs.map(d => ({id: d.id, ...d.data(), isGlobal: false}));
+                     setUserProducts(items);
+                });
+
+                // 5. SOLICITUDES
                 let unsubReq = () => {};
                 if (targetUid === user.uid) {
                     unsubReq = db.collection(`users/${user.uid}/requests`).where("status", "==", "pending").onSnapshot(snap => {
@@ -388,11 +467,7 @@
                     const oldSnap = await db.collection('global_products').get();
                     let batchDel = db.batch();
                     let delCount = 0;
-                    oldSnap.forEach(d => { 
-                        batchDel.delete(d.ref); 
-                        delCount++; 
-                        if(delCount >= 400) { batchDel.commit(); batchDel = db.batch(); delCount=0; }
-                    });
+                    oldSnap.forEach(d => { batchDel.delete(d.ref); delCount++; if(delCount >= 400) { batchDel.commit(); batchDel = db.batch(); delCount=0; } });
                     if(delCount > 0) await batchDel.commit();
 
                     const res = await fetch(LINK_HOJA_PRODUCTOS_URL);
@@ -424,6 +499,7 @@
                      let c = 0;
                      snap.forEach(d => { batch.delete(d.ref); c++; if(c >= 400) { batch.commit(); batch = db.batch(); c=0; } });
                      if(c > 0) await batch.commit();
+                     localStorage.removeItem('imported_'+user.uid);
                 }
                 alert("Limpio.");
             };
@@ -470,6 +546,13 @@
             const copyShareCode = () => navigator.clipboard.writeText(myShareCode).then(()=>alert("Copiado"));
             const copyToClip = () => { const el = document.getElementById('exportarea'); el.select(); document.execCommand('copy'); alert("Copiado."); };
 
+            // COMPUTED VARS
+            const cats = ['Todos', ...new Set(productsWithCart.map(p => p.category || 'Varios'))].sort();
+            const brands = ['Todas', ...new Set(productsWithCart.filter(p => filter === 'Todos' || p.category === filter).map(p => p.brand || 'Genérico'))].sort();
+            const filtered = productsWithCart.filter(p => (filter === 'Todos' || p.category === filter) && (brandFilter === 'Todas' || p.brand === brandFilter) && p.name.toLowerCase().includes(searchTerm.toLowerCase()));
+            const totalPlan = productsWithCart.reduce((a,b)=>a+(b.price*(b.plannedQty||0)),0);
+            const totalCart = productsWithCart.reduce((a,b)=>a+(b.price*(b.actualQty||0)),0);
+
             if(loading) return <div className="h-screen flex flex-col items-center justify-center text-blue-600 font-bold gap-4"><div className="loader"></div>Cargando...</div>;
 
             if(!user) return (
@@ -481,13 +564,6 @@
                     <button onClick={handleAnon} disabled={isLoggingIn} className="mt-4 text-sm text-blue-300 underline hover:text-white">Invitado</button>
                 </div>
             );
-
-            // COMPUTED VARS
-            const cats = ['Todos', ...new Set(productsWithCart.map(p => p.category || 'Varios'))].sort();
-            const brands = ['Todas', ...new Set(productsWithCart.filter(p => filter === 'Todos' || p.category === filter).map(p => p.brand || 'Genérico'))].sort();
-            const filtered = productsWithCart.filter(p => (filter === 'Todos' || p.category === filter) && (brandFilter === 'Todas' || p.brand === brandFilter) && p.name.toLowerCase().includes(searchTerm.toLowerCase()));
-            const totalPlan = productsWithCart.reduce((a,b)=>a+(b.price*(b.plannedQty||0)),0);
-            const totalCart = productsWithCart.reduce((a,b)=>a+(b.price*(b.actualQty||0)),0);
 
             return (
                 <div className="flex flex-col h-full bg-gray-50 font-sans overflow-hidden">
@@ -567,6 +643,7 @@
                         )}
                     </div>
 
+                    {/* MODALES & EXTRAS */}
                     {showProductModal && <ProductFormModal products={productsWithCart} productToEdit={productToEdit} onClose={()=>setShowProductModal(false)} onSave={handleSaveProduct} onDelete={onDeleteFromModal} />}
                     {showDeleteConfirm && <div className="fixed inset-0 z-[70] bg-black/50 flex items-center justify-center p-6"><div className="bg-white rounded-xl p-6 max-w-xs text-center shadow-2xl border-t-4 border-red-500"><Icons.AlertTriangle size={40} className="mx-auto text-red-500 mb-4"/><h3 className="font-bold text-lg text-gray-800 mb-2">¿Eliminar Producto?</h3><p className="text-sm text-gray-600 mb-6">Esta acción borrará el producto de la Base de Datos General permanentemente.</p><div className="flex gap-3"><button onClick={()=>setShowDeleteConfirm(null)} className="flex-1 py-2 border rounded font-bold text-gray-600">Cancelar</button><button onClick={()=>handleDeleteProduct(showDeleteConfirm.id, showDeleteConfirm.isGlobal)} className="flex-1 py-2 bg-red-600 text-white rounded font-bold shadow">ELIMINAR</button></div></div></div>}
                     {showSettings && <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4"><div className="bg-white rounded-xl w-full max-w-sm p-5 space-y-3"><div className="flex justify-between mb-4"><h3 className="font-bold">Ajustes</h3><button onClick={()=>setShowSettings(false)}><Icons.X size={20}/></button></div><div className="text-xs text-gray-500 bg-gray-50 p-2 rounded">ID: {user.uid}</div>{isAdmin && <button onClick={handleAdminImport} className="w-full py-3 bg-green-600 text-white rounded font-bold flex justify-center gap-2 mb-2"><Icons.Download size={18}/> Llenar Góndola (Sheet)</button>}{isAdmin && <button onClick={handleAdminCleanDuplicates} className="w-full py-3 border border-orange-200 text-orange-600 rounded font-bold flex justify-center gap-2 mb-2"><Icons.Broom size={18}/> Limpiar Duplicados</button>}<button onClick={handleResetPlan} className="w-full py-3 border border-orange-200 text-orange-600 rounded font-bold flex justify-center gap-2 mb-2"><Icons.List size={18}/> Reset Plan</button><button onClick={cleanDB} className="w-full py-3 border text-red-600 font-bold flex justify-center gap-2"><Icons.Trash size={18}/> Resetear Cuenta</button><button onClick={handleLogout} className="w-full py-3 border font-bold flex justify-center gap-2"><Icons.LogOut size={18}/> Salir</button></div></div>}
@@ -581,11 +658,9 @@
                             <button onClick={() => setView('history')} className={`flex flex-col items-center justify-center w-full h-full ${view === 'history' ? 'text-white' : 'text-white/50'}`}><Icons.PieChart size={24} strokeWidth={2.5} /><span className="text-[10px] font-bold mt-1">Historial</span></button>
                         </div>
                     </div>
-
-                    {statusMsg && <div className="fixed top-24 left-1/2 -translate-x-1/2 bg-black/80 text-white text-xs px-4 py-2 rounded-full shadow-lg z-50">{statusMsg}</div>}
                 </div>
             );
-        };
+        }
 
         const root = ReactDOM.createRoot(document.getElementById('root'));
         root.render(<ErrorBoundary><App /></ErrorBoundary>);
