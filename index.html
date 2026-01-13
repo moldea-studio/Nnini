@@ -10,26 +10,30 @@
     <link rel="apple-touch-icon" href="https://i.imgur.com/23tlEnQ.jpeg">
     <link rel="manifest" href="data:application/manifest+json;base64,ewogICJuYW1lIjogIk5pbmkgQ2xvdWQiLAogICJzaG9ydF9uYW1lIjogIk5pbmkiLAogICJzdGFydF91cmwiOiAiLiIsCiAgImRpc3BsYXkiOiAic3RhbmRhbG9uZSIsCiAgImJhY2tncm91bmRfY29sb3IiOiAiIzAwNGFhZCIsCiAgImljb25zIjogWwogICAgewogICAgICAic3JjIjogImh0dHBzOi8vaS5pbWd1ci5jb20vMjN0bEVuUS5qcGVnIiwKICAgICAgInNpemVzIjogIjUxMng1MTIiLAogICAgICAidHlwZSI6ICJpbWFnZS9qcGVnIgogICAgfQogIF0KfQ==">
 
+    <!-- 1. ESTILOS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- 2. REACT -->
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     
+    <!-- 3. FIREBASE -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 
     <style>
-        body, html { margin: 0; padding: 0; height: 100dvh; overflow: hidden; font-family: -apple-system, system-ui, sans-serif; background-color: #f9fafb; -webkit-tap-highlight-color: transparent; user-select: none; }
-        .no-scrollbar::-webkit-scrollbar { display: none; }
-        input, select { font-size: 16px; }
+        /* ESTILO CRITICO PARA QUE NO SE MUEVA NADA */
+        html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; -webkit-font-smoothing: antialiased; }
+        #root { height: 100%; width: 100%; display: flex; flex-direction: column; }
         .loader { width:30px; height:30px; border:3px solid #eee; border-top-color:#004aad; border-radius:50%; animation:spin 1s infinite linear; }
         @keyframes spin { 100% { transform:rotate(360deg); } }
     </style>
 </head>
-<body class="text-gray-800">
-    <div id="root" style="height:100%;">
-        <div style="height:100dvh; display:flex; justify-content:center; align-items:center;">
+<body class="bg-gray-50 text-gray-800">
+    <div id="root">
+        <div style="height:100%; display:flex; justify-content:center; align-items:center;">
             <div class="loader"></div>
         </div>
     </div>
@@ -57,7 +61,6 @@
 
         const COLORS = {
             blue: '#004aad', red: '#e31d2b', bg: '#f8f9fa',
-            bar1: '#93C5FD', bar2: '#60A5FA', gray: '#E5E7EB',
             pie: ['#93C5FD', '#FCA5A5', '#86EFAC', '#FDE047', '#D8B4FE', '#F9A8D4', '#67E8F9']
         };
 
@@ -94,8 +97,11 @@
             Broom: (props) => <IconBase {...props}><path d="m9.06 11.9 8.07-8.06a2.85 2.85 0 1 1 4.03 4.03l-8.06 8.08"/><path d="M7.07 14.94c-1.66 0-3 1.35-3 3.02 0 1.33-2.5 1.52-2.5 1.52S4.16 21 7.82 21c1.67 0 3.02-1.35 3.02-3.02v-3.03"/></IconBase>
         };
 
-        const INITIAL_PRODUCTS = [];
+        const INITIAL_PRODUCTS = [
+            { id: '101', name: 'Cargando...', brand: '...', category: 'General', price: 0, plannedQty: 0, actualQty: 0 },
+        ];
 
+        // --- ERROR BOUNDARY ---
         class ErrorBoundary extends React.Component {
             constructor(props) { super(props); this.state = { hasError: false, error: null }; }
             static getDerivedStateFromError(error) { return { hasError: true, error }; }
@@ -140,12 +146,7 @@
             const handleSubmit = (e) => {
                 e.preventDefault();
                 const cleanNum = s => parseFloat(String(s).replace(/\./g,'').replace(',','.')) || 0;
-                onSave({ 
-                    name, 
-                    category: cat || 'Varios', 
-                    brand: brand || 'Genérico', 
-                    price: cleanNum(price) 
-                });
+                onSave({ name, category: cat || 'Varios', brand: brand || 'Genérico', price: cleanNum(price) });
             };
 
             return (
@@ -219,29 +220,24 @@
                 if(!user || isDemo) return;
                 const targetUid = viewTargetUid || user.uid;
 
-                // 1. Global (Leen Todos)
                 const unsubGlobal = db.collection('global_products').onSnapshot(snap => {
                     const items = snap.docs.map(d => ({id: d.id, ...d.data(), isGlobal: true}));
                     setGlobalProducts(items);
                 });
 
-                // 2. Personal (Lee Usuario)
                 const unsubUserProd = db.collection(`users/${targetUid}/products`).onSnapshot(snap => {
                     const items = snap.docs.map(d => ({id: d.id, ...d.data(), isGlobal: false}));
                     setUserProducts(items);
                 });
 
-                // 3. Carrito (Privado)
                 const unsubCart = db.collection(`users/${targetUid}/cart`).doc('main').onSnapshot(snap => {
                     if(snap.exists) setCart(snap.data()); else setCart({});
                 });
 
-                // 4. Historial (Privado)
                 const unsubHist = db.collection(`users/${targetUid}/history`).orderBy("date", "desc").onSnapshot(snap => {
                     setHistory(snap.docs.map(d => ({id: d.id, ...d.data()})));
                 }, err => {});
                 
-                // 5. Solicitudes (Solo Mias)
                 let unsubReq = () => {};
                 if (targetUid === user.uid) {
                     unsubReq = db.collection(`users/${user.uid}/requests`).where("status", "==", "pending").onSnapshot(snap => {
@@ -298,13 +294,14 @@
                     db.collection('global_products').doc(id).delete();
                 } else if (!isGlobal) {
                     db.collection(`users/${user.uid}/products`).doc(id).delete();
+                } else {
+                    alert("No tienes permiso para borrar productos globales.");
                 }
                 setShowDeleteConfirm(null);
             };
             
-            // LIMPIEZA DE DUPLICADOS MEJORADA (Batching)
             const handleAdminCleanDuplicates = async () => {
-                if(!confirm("⚠️ ADMIN: ¿Eliminar duplicados en Góndola? Esto puede tardar.")) return;
+                if(!confirm("⚠️ ADMIN: ¿Eliminar duplicados en Góndola?")) return;
                 setStatusMsg("Limpiando..."); setShowSettings(false);
                 try {
                     const snap = await db.collection('global_products').get();
@@ -312,7 +309,7 @@
                     let batch = db.batch();
                     let count = 0; let deleted = 0;
                     
-                    snap.docs.forEach(doc => {
+                    snap.forEach(doc => {
                         const d = doc.data();
                         const key = `${d.name}-${d.brand}-${d.category}`.toLowerCase().trim();
                         if(seen.has(key)) {
@@ -328,11 +325,7 @@
                     if(count > 0) await batch.commit();
                     alert(`Limpieza terminada. Se borraron ${deleted} duplicados.`);
                     setStatusMsg("");
-                } catch(e) {
-                    console.error(e);
-                    alert("Error al limpiar: " + e.message);
-                    setStatusMsg("");
-                }
+                } catch(e) { alert("Error al limpiar: " + e.message); setStatusMsg(""); }
             };
 
             const handleAdminImport = async () => {
@@ -342,11 +335,7 @@
                     const oldSnap = await db.collection('global_products').get();
                     let batchDel = db.batch();
                     let delCount = 0;
-                    oldSnap.forEach(d => { 
-                        batchDel.delete(d.ref); 
-                        delCount++; 
-                        if(delCount >= 400) { batchDel.commit(); batchDel = db.batch(); delCount=0; }
-                    });
+                    oldSnap.forEach(d => { batchDel.delete(d.ref); delCount++; if(delCount >= 400) { batchDel.commit(); batchDel = db.batch(); delCount=0; } });
                     if(delCount > 0) await batchDel.commit();
 
                     const res = await fetch(LINK_HOJA_PRODUCTOS_URL);
@@ -362,12 +351,10 @@
                         if(c.length>1 && c[1]) {
                             const ref = db.collection('global_products').doc();
                             batch.set(ref, { name: c[1], brand: c[2]||'-', category: c[3]||'Varios', price: num(c[4]) });
-                            count++; 
-                            if(count >= 400) { batch.commit(); batch = db.batch(); count=0; }
+                            count++; if(count%450===0) { batch.commit(); batch = db.batch(); }
                         }
                     });
-                    if(count > 0) await batch.commit();
-                    
+                    await batch.commit();
                     alert("¡Góndola llena!"); setStatusMsg('');
                 } catch(e) { alert(e.message); setStatusMsg(''); }
             };
@@ -378,11 +365,7 @@
                      const snap = await db.collection(`users/${user.uid}/products`).get();
                      let batch = db.batch();
                      let c = 0;
-                     snap.forEach(d => { 
-                         batch.delete(d.ref);
-                         c++;
-                         if(c >= 400) { batch.commit(); batch = db.batch(); c=0; }
-                     });
+                     snap.forEach(d => { batch.delete(d.ref); c++; if(c >= 400) { batch.commit(); batch = db.batch(); c=0; } });
                      if(c > 0) await batch.commit();
                      localStorage.removeItem('imported_'+user.uid);
                 }
@@ -417,7 +400,6 @@
                         total: bought.reduce((a,b)=>a+(b.price*b.actualQty),0),
                         items: bought.map(i=>({name:i.name, brand:i.brand, category:i.category, price:i.price, actualQty:i.actualQty}))
                     });
-                    
                     const newC = {...cart};
                     bought.forEach(p => { if(newC[p.id]) newC[p.id].a = 0; });
                     await db.collection(`users/${user.uid}/cart`).doc('main').set(newC);
@@ -451,8 +433,9 @@
             const totalCart = productsWithCart.reduce((a,b)=>a+(b.price*(b.actualQty||0)),0);
 
             return (
-                <div className="fixed inset-0 bg-gray-50 font-sans flex flex-col overflow-hidden">
-                    <div className="bg-white shadow-md shrink-0 z-50">
+                <div className="flex flex-col h-full bg-gray-50 font-sans">
+                    {/* FIXED HEADER */}
+                    <div className="flex-none bg-white shadow-md z-50">
                         <div className="flex justify-between items-center px-4 py-2 border-b">
                             <div className="h-14 w-40 overflow-hidden flex items-center -ml-3"><img src="https://i.imgur.com/23tlEnQ.jpeg" className="h-full w-full object-contain scale-[1.8]" /></div>
                             <div className="flex gap-2 items-center">
@@ -464,8 +447,8 @@
                         </div>
 
                         {view === 'list' && (
-                            <div className="bg-white p-3 border-b flex flex-col gap-3">
-                                {isReadOnly && <div className="bg-orange-100 p-2 text-center text-xs text-orange-800 font-bold flex justify-between items-center px-4 rounded mb-2"><span>Modo Espejo (Solo Lectura)</span><button onClick={()=>setViewTargetUid(user.uid)} className="underline">Salir</button></div>}
+                            <div className="p-3 gap-3 flex flex-col">
+                                {isReadOnly && <div className="bg-orange-100 p-2 text-center text-xs text-orange-800 font-bold flex justify-between items-center px-4 rounded"><span>Modo Espejo (Solo Lectura)</span><button onClick={()=>setViewTargetUid(user.uid)} className="underline">Salir</button></div>}
                                 <div className="flex gap-2">
                                     <button onClick={()=>setIsLocked(!isLocked)} className={`w-10 h-10 flex items-center justify-center rounded-lg border ${isLocked?'bg-orange-50 text-orange-600':'bg-gray-50 text-gray-400'}`}>{isLocked?<Icons.Lock size={18}/>:<Icons.Unlock size={18}/>}</button>
                                     <div className="relative flex-1"><span className="absolute left-3 top-2 text-gray-400"><Icons.Search size={16}/></span><input className="w-full h-10 pl-9 pr-3 rounded-lg border bg-gray-50 focus:bg-white outline-none text-sm" placeholder="Buscar..." onChange={e=>setSearchTerm(e.target.value)}/></div>
@@ -475,14 +458,15 @@
                                 </div>
                                 {showBrandFilter && <div className="px-3 py-2 bg-blue-50 border-b"><select onChange={e=>setBrandFilter(e.target.value)} className="w-full p-2 text-sm border rounded"><option value="Todas">Todas las marcas</option>{brands.map(b=><option key={b} value={b}>{b}</option>)}</select></div>}
                                 <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">{cats.map(c=><button key={c} onClick={()=>setFilter(c)} className={`px-3 py-1 rounded-full text-xs font-bold whitespace-nowrap transition-colors ${filter===c?'bg-blue-600 text-white':'bg-gray-100 text-gray-600'}`}>{c}</button>)}</div>
-                                <div className="flex text-[10px] text-gray-400 font-bold px-3 py-1 bg-gray-50 border-b uppercase tracking-wider shadow-sm"><div className="flex-1">Producto</div><div className="w-16 text-center">Plan</div><div className="w-28 text-center">Carrito</div></div>
                             </div>
                         )}
+                        <div className="flex text-[10px] text-gray-400 font-bold px-3 py-1 bg-gray-50 border-t border-b uppercase tracking-wider shadow-sm"><div className="flex-1">Producto</div><div className="w-16 text-center">Plan</div><div className="w-28 text-center">Carrito</div></div>
                     </div>
 
-                    <div className="flex-1 overflow-y-auto">
+                    {/* SCROLLABLE LIST */}
+                    <div className="flex-1 overflow-y-auto pb-20">
                         {view === 'list' ? (
-                            <div className="pb-4 pt-2">
+                            <div className="pb-4">
                                 {filtered.map(p => (
                                     <div key={p.id} className={`flex items-center px-4 py-4 border-b transition-colors ${p.actualQty>0?'bg-green-50':'bg-white'}`}>
                                         <div className="flex-1 min-w-0 pr-2">
@@ -521,37 +505,15 @@
                         )}
                     </div>
 
+                    {/* MODALES FLOTANTES IGUAL QUE ANTES... */}
                     {showProductModal && <ProductFormModal products={productsWithCart} productToEdit={productToEdit} onClose={()=>setShowProductModal(false)} onSave={handleSaveProduct} />}
-
-                    {showDeleteConfirm && (
-                        <div className="fixed inset-0 z-[70] bg-black/50 flex items-center justify-center p-6">
-                            <div className="bg-white rounded-xl p-6 max-w-xs text-center shadow-2xl border-t-4 border-red-500">
-                                <Icons.AlertTriangle size={40} className="mx-auto text-red-500 mb-4"/>
-                                <h3 className="font-bold text-lg text-gray-800 mb-2">¿Eliminar Producto?</h3>
-                                <p className="text-sm text-gray-600 mb-6">Esta acción borrará el producto de la Base de Datos General permanentemente.</p>
-                                <div className="flex gap-3">
-                                    <button onClick={()=>setShowDeleteConfirm(null)} className="flex-1 py-2 border rounded font-bold text-gray-600">Cancelar</button>
-                                    <button onClick={()=>handleDeleteProduct(showDeleteConfirm.id, showDeleteConfirm.isGlobal)} className="flex-1 py-2 bg-red-600 text-white rounded font-bold shadow">ELIMINAR</button>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-
-                    {showSettings && <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4"><div className="bg-white rounded-xl w-full max-w-sm p-5 space-y-3">
-                        <div className="flex justify-between mb-4"><h3 className="font-bold">Ajustes</h3><button onClick={()=>setShowSettings(false)}><Icons.X size={20}/></button></div>
-                        <div className="text-xs text-gray-500 bg-gray-50 p-2 rounded">ID: {user.uid}</div>
-                        {isAdmin && <button onClick={handleAdminImport} className="w-full py-3 bg-green-600 text-white rounded font-bold flex justify-center gap-2 mb-2"><Icons.Download size={18}/> Llenar Góndola (Sheet)</button>}
-                        {isAdmin && <button onClick={handleAdminCleanDuplicates} className="w-full py-3 border border-orange-200 text-orange-600 rounded font-bold flex justify-center gap-2 mb-2"><Icons.Broom size={18}/> Limpiar Duplicados</button>}
-                        <button onClick={handleResetPlan} className="w-full py-3 border border-orange-200 text-orange-600 rounded font-bold flex justify-center gap-2 mb-2"><Icons.List size={18}/> Reset Plan</button>
-                        <button onClick={cleanDB} className="w-full py-3 border text-red-600 font-bold flex justify-center gap-2"><Icons.Trash size={18}/> Resetear Cuenta</button>
-                        <button onClick={handleLogout} className="w-full py-3 border font-bold flex justify-center gap-2"><Icons.LogOut size={18}/> Salir</button>
-                    </div></div>}
-                    
-                    {showInstallModal && <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-6 animate-fade-in" onClick={() => setShowInstallModal(false)}><div className="bg-white rounded-xl p-6 max-w-sm text-center shadow-2xl relative" onClick={e => e.stopPropagation()}><button onClick={() => setShowInstallModal(false)} className="absolute top-2 right-2 text-gray-400"><Icons.X size={20}/></button><h3 className="text-lg font-bold text-gray-800 mb-2">Instalar Nini App</h3><p className="text-sm text-gray-600 mb-4">Para instalar esta web como una App en tu iPhone:</p><div className="space-y-3 text-sm text-left bg-gray-50 p-4 rounded-lg"><div className="flex items-center gap-3"><Icons.Share size={20} className="text-blue-500"/> <span>1. Toca el botón <b>Compartir</b> abajo.</span></div><div className="flex items-center gap-3"><Icons.Plus size={20} className="text-gray-600 border border-gray-400 rounded p-0.5"/> <span>2. Elige <b>"Agregar a Inicio"</b>.</span></div></div></div></div>}
-
+                    {showDeleteConfirm && <div className="fixed inset-0 z-[70] bg-black/50 flex items-center justify-center p-6"><div className="bg-white rounded-xl p-6 max-w-xs text-center shadow-2xl border-t-4 border-red-500"><Icons.AlertTriangle size={40} className="mx-auto text-red-500 mb-4"/><h3 className="font-bold text-lg text-gray-800 mb-2">¿Eliminar Producto?</h3><p className="text-sm text-gray-600 mb-6">Esta acción borrará el producto permanentemente.</p><div className="flex gap-3"><button onClick={()=>setShowDeleteConfirm(null)} className="flex-1 py-2 border rounded font-bold text-gray-600">Cancelar</button><button onClick={()=>handleDeleteProduct(showDeleteConfirm.id, showDeleteConfirm.isGlobal)} className="flex-1 py-2 bg-red-600 text-white rounded font-bold shadow">ELIMINAR</button></div></div></div>}
+                    {showSettings && <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4"><div className="bg-white rounded-xl w-full max-w-sm p-5 space-y-3"><div className="flex justify-between mb-4"><h3 className="font-bold">Ajustes</h3><button onClick={()=>setShowSettings(false)}><Icons.X size={20}/></button></div><div className="text-xs text-gray-500 bg-gray-50 p-2 rounded">ID: {user.uid}</div>{isAdmin && <button onClick={handleAdminImport} className="w-full py-3 bg-green-600 text-white rounded font-bold flex justify-center gap-2 mb-2"><Icons.Download size={18}/> Llenar Góndola (Sheet)</button>}{isAdmin && <button onClick={handleAdminCleanDuplicates} className="w-full py-3 border border-orange-200 text-orange-600 rounded font-bold flex justify-center gap-2 mb-2"><Icons.Broom size={18}/> Limpiar Duplicados</button>}<button onClick={handleResetPlan} className="w-full py-3 border border-orange-200 text-orange-600 rounded font-bold flex justify-center gap-2 mb-2"><Icons.List size={18}/> Reset Plan</button><button onClick={cleanDB} className="w-full py-3 border text-red-600 font-bold flex justify-center gap-2"><Icons.Trash size={18}/> Resetear Cuenta</button><button onClick={handleLogout} className="w-full py-3 border font-bold flex justify-center gap-2"><Icons.LogOut size={18}/> Salir</button></div></div>}
+                    {showInstallModal && <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-6 animate-fade-in" onClick={() => setShowInstallModal(false)}><div className="bg-white rounded-xl p-6 max-w-sm text-center shadow-2xl relative" onClick={e => e.stopPropagation()}><button onClick={() => setShowInstallModal(false)} className="absolute top-2 right-2 text-gray-400"><Icons.X size={20}/></button><h3 className="text-lg font-bold text-gray-800 mb-2">Instalar App</h3><p className="text-sm text-gray-600 mb-4">Para instalar: menú del navegador > Agregar a inicio</p></div></div>}
                     {showExportModal && <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"><div className="bg-white rounded-xl shadow-xl w-full max-w-md flex flex-col max-h-[80vh]"><div className="p-4 border-b flex justify-between"><h3 className="font-bold">Copiar al Excel</h3><button onClick={() => setShowExportModal(false)}><Icons.X size={20}/></button></div><div className="p-4 flex-1 bg-gray-50"><textarea id="exportarea" readOnly value={exportContent} className="w-full h-32 p-2 text-xs border rounded mb-2" onClick={e => e.target.select()} /><button onClick={copyToClip} className="w-full py-2 bg-green-600 text-white font-bold rounded">COPIAR AHORA</button></div><div className="p-4 border-t"><button onClick={() => { setProducts(prev => prev.map(p => ({...p, actualQty:0}))); setShowExportModal(false); }} className="w-full py-2 text-blue-600 font-bold border border-blue-600 rounded">Limpiar Carrito</button></div></div></div>}
 
-                    <div className="fixed bottom-0 w-full flex justify-around items-center pb-safe z-50 h-16 shadow-lg" style={{ backgroundColor: COLORS.blue }}>
+                    {/* MENU INFERIOR FIJO */}
+                    <div className="fixed bottom-0 w-full flex justify-around items-center pb-safe z-50 h-16 shadow-lg bg-blue-700 text-white">
                         <button onClick={() => { setView('list'); setViewTargetUid(user.uid); }} className={`flex flex-col items-center justify-center w-full h-full ${view === 'list' && !isReadOnly ? 'text-white' : 'text-white/50'}`}><Icons.List size={24} strokeWidth={2.5} /><span className="text-[10px] font-bold mt-1">Lista</span></button>
                         <button onClick={() => setView('shared')} className={`flex flex-col items-center justify-center w-full h-full ${view === 'shared' ? 'text-white' : 'text-white/50'}`}><Icons.User size={24} strokeWidth={2.5} /><span className="text-[10px] font-bold mt-1">Compartido</span></button>
                         <button onClick={() => setView('history')} className={`flex flex-col items-center justify-center w-full h-full ${view === 'history' ? 'text-white' : 'text-white/50'}`}><Icons.PieChart size={24} strokeWidth={2.5} /><span className="text-[10px] font-bold mt-1">Historial</span></button>
