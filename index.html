@@ -7,27 +7,8 @@
     
     <meta name="theme-color" content="#ffffff">
     <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <link rel="apple-touch-icon" href="https://i.imgur.com/23tlEnQ.jpeg">
     <link rel="manifest" href="data:application/manifest+json;base64,ewogICJuYW1lIjogIk5pbmkgQ2xvdWQiLAogICJzaG9ydF9uYW1lIjogIk5pbmkiLAogICJzdGFydF91cmwiOiAiLiIsCiAgImRpc3BsYXkiOiAic3RhbmRhbG9uZSIsCiAgImJhY2tncm91bmRfY29sb3IiOiAiIzAwNGFhZCIsCiAgImljb25zIjogWwogICAgewogICAgICAic3JjIjogImh0dHBzOi8vaS5pbWd1ci5jb20vMjN0bEVuUS5qcGVnIiwKICAgICAgInNpemVzIjogIjUxMng1MTIiLAogICAgICAidHlwZSI6ICJpbWFnZS9qcGVnIgogICAgfQogIF0KfQ==">
-
-    <!-- PANTALLA DE ERROR DE EMERGENCIA -->
-    <script>
-        window.onerror = function(msg, url, line, col, error) {
-            const root = document.getElementById('root');
-            if(root && (!root.innerHTML || root.innerHTML.includes('loader'))) {
-                root.innerHTML = `
-                    <div style="height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:20px; font-family:sans-serif; text-align:center; background:#fff5f5;">
-                        <h2 style="color:#e31d2b; font-weight:bold; margin-bottom:10px;">¡Error Crítico!</h2>
-                        <div style="background:white; border:1px solid #ffcccc; padding:15px; border-radius:8px; font-size:12px; color:#c00; margin-bottom:20px; text-align:left;">
-                            <strong>${msg}</strong><br>Línea: ${line}
-                        </div>
-                        <button onclick="localStorage.clear(); window.location.reload()" style="background:#004aad; color:white; border:none; padding:12px 24px; border-radius:8px; font-weight:bold; cursor:pointer;">Restablecer App</button>
-                    </div>
-                `;
-            }
-        };
-    </script>
 
     <script src="https://cdn.tailwindcss.com"></script>
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
@@ -39,7 +20,6 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 
     <style>
-        /* ESTRUCTURA RIGIDA: La pantalla no se mueve, solo el contenido interior */
         html, body { 
             height: 100dvh; 
             width: 100vw; 
@@ -127,20 +107,43 @@
 
         const INITIAL_PRODUCTS = [];
 
-        // --- ERROR BOUNDARY ---
         class ErrorBoundary extends React.Component {
-            constructor(props) { super(props); this.state = { hasError: false, error: null }; }
+            constructor(props) {
+                super(props);
+                this.state = { hasError: false, error: null };
+                this.copyError = this.copyError.bind(this);
+            }
             static getDerivedStateFromError(error) { return { hasError: true, error }; }
-            copyError = () => { navigator.clipboard.writeText(this.state.error?.toString()).then(()=>alert("Copiado")); }
+            
+            copyError() {
+                const el = document.createElement('textarea');
+                el.value = this.state.error?.toString() || 'Error';
+                document.body.appendChild(el);
+                el.select();
+                document.execCommand('copy');
+                document.body.removeChild(el);
+                alert("Copiado al portapapeles.");
+            }
+
             render() {
-                if (this.state.hasError) return <div className="p-10 text-center"><Icons.AlertTriangle className="mx-auto text-red-500 mb-2"/><h2 className="font-bold">Error</h2><p className="text-xs text-gray-500 mb-4">{this.state.error?.message}</p><button onClick={this.copyError} className="bg-blue-600 text-white px-4 py-2 rounded font-bold mb-2">Copiar Error</button><br/><button onClick={()=>{localStorage.clear(); window.location.reload()}} className="bg-gray-200 px-4 py-2 rounded">Reiniciar</button></div>;
+                if (this.state.hasError) return (
+                    <div className="flex flex-col items-center justify-center h-screen p-6 text-center bg-gray-50">
+                        <Icons.AlertTriangle className="text-red-500 w-12 h-12 mx-auto mb-4" />
+                        <h2 className="text-xl font-bold text-gray-800 mb-2">Algo salió mal</h2>
+                        <p className="text-xs text-red-600 mb-4 font-mono bg-red-50 p-2 rounded max-w-full overflow-auto text-left">
+                            {this.state.error?.toString()}
+                        </p>
+                        <button onClick={this.copyError} className="bg-blue-600 text-white px-4 py-2 rounded font-bold mb-2 w-full">COPIAR ERROR</button>
+                        <button onClick={()=>{localStorage.clear(); window.location.reload()}} className="bg-gray-200 text-gray-700 px-4 py-2 rounded font-bold w-full">REINICIAR</button>
+                    </div>
+                );
                 return this.props.children;
             }
         }
 
         const AdBanner = () => <div className="bg-white border-b border-gray-100 py-3 px-4 flex justify-center shrink-0"><div className="w-full max-w-sm h-12 bg-gray-100 rounded border border-dashed border-gray-300 flex items-center justify-center text-xs text-gray-400">ESPACIO PUBLICITARIO (ADS)</div></div>;
 
-        // --- COMPONENTE AGREGAR / EDITAR PRODUCTO ---
+        // --- SUBCOMPONENTES ---
         const ProductFormModal = ({ products, productToEdit, onClose, onSave, onDelete }) => {
             const [name, setName] = useState('');
             const [cat, setCat] = useState('');
@@ -187,15 +190,16 @@
                 <div className="fixed inset-0 z-[70] bg-black/50 flex items-center justify-center p-4">
                     <form onSubmit={handleSubmit} className="bg-white p-5 rounded-xl w-full max-w-xs shadow-2xl space-y-3">
                         <div className="flex justify-between items-center mb-2">
-                            <h3 className="font-bold text-lg">{productToEdit ? 'Editar' : 'Nuevo'}</h3>
+                            <h3 className="font-bold text-lg">{productToEdit ? 'Editar Producto' : 'Nuevo Producto'}</h3>
                             <button type="button" onClick={onClose}><Icons.X size={20}/></button>
                         </div>
                         <div><label className="text-xs font-bold text-gray-500">Nombre</label><input value={name} onChange={e=>setName(e.target.value)} className="w-full border p-2 rounded" required autoFocus/></div>
-                        <div><label className="text-xs font-bold text-gray-500">Rubro</label>{!isNewCat ? (<select value={cat} onChange={e=>{if(e.target.value==='NEW'){setIsNewCat(true);setCat('')}else setCat(e.target.value)}} className="w-full border p-2 rounded bg-white"><option value="" disabled>Seleccionar...</option>{existingCats.map(c=><option key={c} value={c}>{c}</option>)}<option value="NEW">+ Nuevo rubro...</option></select>) : (<div className="flex gap-1"><input value={cat} onChange={e=>setCat(e.target.value)} className="w-full border p-2 rounded" placeholder="Rubro" required/><button type="button" onClick={()=>setIsNewCat(false)} className="text-red-500 p-2"><Icons.X size={16}/></button></div>)}</div>
-                        <div><label className="text-xs font-bold text-gray-500">Marca</label>{!isNewBrand && existingBrands.length > 0 ? (<select value={brand} onChange={e=>{if(e.target.value==='NEW'){setIsNewBrand(true);setBrand('')}else setBrand(e.target.value)}} className="w-full border p-2 rounded bg-white"><option value="">Genérico</option>{existingBrands.map(b=><option key={b} value={b}>{b}</option>)}<option value="NEW">+ Nueva...</option></select>) : (<div className="flex gap-1"><input value={brand} onChange={e=>setBrand(e.target.value)} className="w-full border p-2 rounded" placeholder="Marca" />{existingBrands.length > 0 && <button type="button" onClick={()=>setIsNewBrand(false)} className="text-red-500 p-2"><Icons.X size={16}/></button>}</div>)}</div>
+                        <div><label className="text-xs font-bold text-gray-500">Rubro</label>{!isNewCat ? (<select value={cat} onChange={e=>{if(e.target.value==='NEW'){setIsNewCat(true);setCat('')}else setCat(e.target.value)}} className="w-full border p-2 rounded bg-white"><option value="" disabled>Seleccionar...</option>{existingCats.map(c=><option key={c} value={c}>{c}</option>)}<option value="NEW">+ Nuevo rubro...</option></select>) : (<div className="flex gap-1"><input value={cat} onChange={e=>setCat(e.target.value)} className="w-full border p-2 rounded" placeholder="Nombre del rubro" required/><button type="button" onClick={()=>setIsNewCat(false)} className="text-red-500 p-2"><Icons.X size={16}/></button></div>)}</div>
+                        <div><label className="text-xs font-bold text-gray-500">Marca</label>{!isNewBrand && existingBrands.length > 0 ? (<select value={brand} onChange={e=>{if(e.target.value==='NEW'){setIsNewBrand(true);setBrand('')}else setBrand(e.target.value)}} className="w-full border p-2 rounded bg-white"><option value="">Genérico / Sin Marca</option>{existingBrands.map(b=><option key={b} value={b}>{b}</option>)}<option value="NEW">+ Nueva marca...</option></select>) : (<div className="flex gap-1"><input value={brand} onChange={e=>setBrand(e.target.value)} className="w-full border p-2 rounded" placeholder="Marca (Opcional)" />{existingBrands.length > 0 && <button type="button" onClick={()=>setIsNewBrand(false)} className="text-red-500 p-2"><Icons.X size={16}/></button>}</div>)}</div>
                         <div><label className="text-xs font-bold text-gray-500">Precio</label><input value={price} onChange={e=>setPrice(e.target.value)} type="number" className="w-full border p-2 rounded" placeholder="$0" /></div>
                         
                         <div className="flex gap-2 mt-2">
+                             {/* BOTÓN ELIMINAR DENTRO DEL MODAL */}
                              {productToEdit && onDelete && (
                                 <button type="button" onClick={() => onDelete(productToEdit.id, productToEdit.isGlobal)} className="flex-1 bg-red-100 text-red-600 font-bold py-3 rounded">
                                     Eliminar
@@ -210,7 +214,6 @@
             );
         };
 
-        // --- COMPONENTE HISTORIAL ---
         const HistoryView = ({ history }) => {
             const [filterDate, setFilterDate] = useState('all');
             const [expandedId, setExpandedId] = useState(null);
@@ -249,7 +252,7 @@
             const totalAnnual = monthlyData.reduce((acc, curr) => acc + curr.total, 0);
             const pieGradient = pieData.length > 0 ? pieData.reduce((acc, cat, idx) => {
                 const prev = pieData.slice(0, idx).reduce((p, c) => p + c.percent, 0);
-                const color = COLORS.chartColors[idx % COLORS.chartColors.length];
+                const color = COLORS.pie[idx % COLORS.pie.length]; // CORRECCIÓN DEFINITIVA DE COLORES
                 return `${acc}, ${color} ${prev}% ${prev + cat.percent}%`;
             }, '').slice(2) : '#ddd 0% 100%';
 
@@ -258,7 +261,7 @@
                     <div className="bg-white rounded-xl shadow border p-4">
                         <div className="flex justify-between mb-4"><h3 className="font-bold text-gray-700 flex gap-2 text-blue-600"><Icons.PieChart size={18} className="text-blue-500"/> Gasto Rubro</h3>
                         <div className="relative"><select onChange={e=>setFilterDate(e.target.value)} className="text-xs border rounded bg-gray-50"><option value="all">Todo el Año</option>{availableMonths.map(m=><option key={m.value} value={m.value}>{m.label}</option>)}</select></div></div>
-                        <div className="flex items-center gap-4"><div className="w-32 h-32 rounded-full flex items-center justify-center flex-col shadow-inner" style={{background: `conic-gradient(${pieGrad})`}}><div className="bg-white w-24 h-24 rounded-full flex flex-col items-center justify-center shadow-sm"><span className="text-[9px] text-gray-400">TOTAL</span><span className="text-xs font-bold">${Math.round(pieData.reduce((a,b)=>a+b.value,0)).toLocaleString('es-AR')}</span></div></div><div className="flex-1 space-y-1">{pieData.slice(0,5).map((c,i)=>(<div key={i} className="flex justify-between text-xs"><span>{c.name}</span><span className="font-bold">{Math.round(c.percent)}%</span></div>))}</div></div>
+                        <div className="flex items-center gap-4"><div className="w-32 h-32 rounded-full flex items-center justify-center flex-col shadow-inner" style={{background: `conic-gradient(${pieGradient})`}}><div className="bg-white w-24 h-24 rounded-full flex flex-col items-center justify-center shadow-sm"><span className="text-[9px] text-gray-400">TOTAL</span><span className="text-xs font-bold">${Math.round(pieData.reduce((a,b)=>a+b.value,0)).toLocaleString('es-AR')}</span></div></div><div className="flex-1 space-y-1">{pieData.slice(0,5).map((c,i)=>(<div key={i} className="flex justify-between text-xs"><span>{c.name}</span><span className="font-bold">{Math.round(c.percent)}%</span></div>))}</div></div>
                     </div>
                     <div className="bg-white rounded-xl shadow border p-4">
                         <div className="flex justify-between mb-4"><h3 className="font-bold text-gray-700">Anual</h3><span className="text-xs font-bold bg-blue-50 text-blue-600 px-2 py-1 rounded">${totalAnnual.toLocaleString('es-AR')}</span></div>
@@ -270,7 +273,7 @@
                             <div key={h.id} className="border-b last:border-0">
                                 <div onClick={()=>setExpandedId(expandedId===h.id?null:h.id)} className="px-4 py-3 flex justify-between items-center hover:bg-gray-50 cursor-pointer">
                                     <div><div className="font-bold text-sm">{new Date(h.date).toLocaleDateString('es-AR')}</div><div className="text-xs text-gray-400">{(h.items||[]).length} items</div></div>
-                                    <div className="flex items-center gap-2"><span className="font-bold text-blue-600">${h.total}</span><Icons.ChevronDown size={16}/></div>
+                                    <div className="flex items-center gap-2"><span className="font-bold text-blue-600">${h.total.toLocaleString('es-AR')}</span><Icons.ChevronDown size={16}/></div>
                                 </div>
                                 {expandedId === h.id && <div className="bg-gray-50 p-3 text-xs border-t">{(h.items||[]).map((i,x)=><div key={x} className="flex justify-between mb-1 pb-1 border-b border-dashed last:border-0 pb-1"><span>{i.actualQty}x {i.name}</span><span>${i.price}</span></div>)}</div>}
                             </div>
@@ -280,7 +283,7 @@
             );
         };
 
-        // --- APP PRINCIPAL ---
+        // --- APP ---
         function App() {
             const [user, setUser] = useState(null);
             const [view, setView] = useState('login'); 
@@ -467,7 +470,11 @@
                     const oldSnap = await db.collection('global_products').get();
                     let batchDel = db.batch();
                     let delCount = 0;
-                    oldSnap.forEach(d => { batchDel.delete(d.ref); delCount++; if(delCount >= 400) { batchDel.commit(); batchDel = db.batch(); delCount=0; } });
+                    oldSnap.forEach(d => { 
+                        batchDel.delete(d.ref); 
+                        delCount++; 
+                        if(delCount >= 400) { batchDel.commit(); batchDel = db.batch(); delCount=0; }
+                    });
                     if(delCount > 0) await batchDel.commit();
 
                     const res = await fetch(LINK_HOJA_PRODUCTOS_URL);
@@ -552,18 +559,6 @@
             const filtered = productsWithCart.filter(p => (filter === 'Todos' || p.category === filter) && (brandFilter === 'Todas' || p.brand === brandFilter) && p.name.toLowerCase().includes(searchTerm.toLowerCase()));
             const totalPlan = productsWithCart.reduce((a,b)=>a+(b.price*(b.plannedQty||0)),0);
             const totalCart = productsWithCart.reduce((a,b)=>a+(b.price*(b.actualQty||0)),0);
-
-            if(loading) return <div className="h-screen flex flex-col items-center justify-center text-blue-600 font-bold gap-4"><div className="loader"></div>Cargando...</div>;
-
-            if(!user) return (
-                <div className="h-screen bg-gradient-to-b from-blue-900 to-blue-700 flex flex-col items-center justify-center p-8 text-white text-center">
-                    <img src="https://i.imgur.com/23tlEnQ.jpeg" className="w-40 rounded-3xl shadow-xl mb-8"/>
-                    <button onClick={handleLogin} disabled={isLoggingIn} className={`bg-white text-gray-800 w-full py-4 rounded-xl font-bold shadow-lg flex items-center justify-center gap-3 active:scale-95 transition ${isLoggingIn?'opacity-70':''}`}>
-                        <Icons.Google size={24}/> {isLoggingIn ? 'Iniciando...' : 'Continuar con Google'}
-                    </button>
-                    <button onClick={handleAnon} disabled={isLoggingIn} className="mt-4 text-sm text-blue-300 underline hover:text-white">Invitado</button>
-                </div>
-            );
 
             return (
                 <div className="flex flex-col h-full bg-gray-50 font-sans overflow-hidden">
