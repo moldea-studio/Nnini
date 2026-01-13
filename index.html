@@ -11,11 +11,15 @@
     <link rel="apple-touch-icon" href="https://i.imgur.com/23tlEnQ.jpeg">
     <link rel="manifest" href="data:application/manifest+json;base64,ewogICJuYW1lIjogIk5pbmkgQ2xvdWQiLAogICJzaG9ydF9uYW1lIjogIk5pbmkiLAogICJzdGFydF91cmwiOiAiLiIsCiAgImRpc3BsYXkiOiAic3RhbmRhbG9uZSIsCiAgImJhY2tncm91bmRfY29sb3IiOiAiI2ZmZmZmZiIsCiAgInRoZW1lX2NvbG9yIjogIiMwMDRhYWQiLAogICJpY29ucyI6IFsKICAgIHsKICAgICAgInNyYyI6ICJodHRwczovL2kuaW1ndXIuY29tLzIzdGxFblEuanBlZyIsCiAgICAgICJzaXplcyI6ICI1MTJ4NTEyIiwKICAgICAgInR5cGUiOiAiaW1hZ2UvanBlZyIKICAgIH0KICBdCn0=">
 
+    <!-- ESTILOS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- REACT -->
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     
+    <!-- FIREBASE (COMPAT MODE) -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
@@ -89,19 +93,19 @@
             LogOut: (props) => <IconBase p={<><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></>} {...props}/>,
             AlertTriangle: (props) => <IconBase p={<><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></>} {...props}/>,
             Settings: (props) => <IconBase p={<><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.09a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></>} {...props}/>,
+            RefreshCw: (props) => <IconBase p={<><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M3 21v-5h5"/></>} {...props}/>,
+            Edit: (props) => <IconBase p={<><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></>} {...props}/>,
             Google: (props) => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" {...props}><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
         };
 
-        const INITIAL_PRODUCTS = [
-            { id: '101', name: 'Cargando...', brand: '...', category: 'General', price: 0, plannedQty: 0, actualQty: 0 },
-        ];
+        const INITIAL_PRODUCTS = [];
 
         class ErrorBoundary extends React.Component {
             constructor(props) { super(props); this.state = { hasError: false, error: null }; }
             static getDerivedStateFromError(error) { return { hasError: true, error }; }
             copyError = () => { navigator.clipboard.writeText(this.state.error?.toString()).then(()=>alert("Copiado")); }
             render() {
-                if (this.state.hasError) return <div className="p-10 text-center"><Icons.AlertTriangle className="mx-auto text-red-500 mb-2"/><h2 className="font-bold">Error</h2><p className="text-xs text-gray-500 mb-4">{this.state.error?.message}</p><button onClick={this.copyError} className="bg-blue-600 text-white px-4 py-2 rounded font-bold mb-2">Copiar Error</button><br/><button onClick={()=>{localStorage.clear(); window.location.reload()}} className="bg-gray-200 px-4 py-2 rounded">Reiniciar</button></div>;
+                if (this.state.hasError) return <div className="p-10 text-center"><Icons.AlertTriangle className="mx-auto text-red-500 mb-2"/><h2 className="font-bold">Error</h2><p className="text-xs text-gray-500 mb-4">{this.state.error?.message}</p><button onClick={this.copyError} className="bg-blue-600 text-white px-4 py-2 rounded font-bold mb-2">Copiar Error</button><br/><button onClick={()=>{localStorage.clear(); window.location.reload()}} className="bg-gray-200 text-gray-700 px-4 py-2 rounded font-bold">REINICIAR</button></div>;
                 return this.props.children;
             }
         }
@@ -264,6 +268,7 @@
             useEffect(() => localStorage.setItem('nini_is_locked', isLocked), [isLocked]);
             useEffect(() => { window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); setDeferredPrompt(e); }); }, []);
 
+            // ... (Shared logic same as before) ...
             const sendRequest = async () => { /* ... */ };
             const acceptRequest = async (reqId, requesterUid) => {
                 await db.collection(`users/${user.uid}/allowed_viewers`).doc(requesterUid).set({ active: true });
@@ -386,6 +391,7 @@
                 </div>
             );
 
+            // COMPUTED VARS
             const cats = ['Todos', ...new Set(productsWithCart.map(p => p.category || 'Varios'))].sort();
             const brands = ['Todas', ...new Set(productsWithCart.filter(p => filter === 'Todos' || p.category === filter).map(p => p.brand || 'Genérico'))].sort();
             const filtered = productsWithCart.filter(p => (filter === 'Todos' || p.category === filter) && (brandFilter === 'Todas' || p.brand === brandFilter) && p.name.toLowerCase().includes(searchTerm.toLowerCase()));
@@ -434,21 +440,21 @@
                                             <div className="flex-1 min-w-0 pr-2">
                                                 <div className="flex items-center justify-between">
                                                     <div className="font-bold text-gray-800 text-lg truncate">{p.name}</div>
-                                                    {!isLocked && (isAdmin && p.isGlobal) && !isReadOnly && <div className="flex gap-1"><button onClick={()=>openEditModal(p)} className="text-gray-300 hover:text-blue-500"><Icons.Edit size={14}/></button><button onClick={()=>setShowDeleteConfirm(p.id)} className="text-gray-300 hover:text-red-500"><Icons.X size={14}/></button></div>}
+                                                    {!isLocked && (isAdmin && p.isGlobal) && !isReadOnly && <div className="flex gap-1"><button onClick={()=>openEditModal(p)} className="text-gray-300 hover:text-blue-500"><Icons.PieChart size={14}/></button><button onClick={()=>setShowDeleteConfirm(p.id)} className="text-gray-300 hover:text-red-500"><Icons.X size={14}/></button></div>}
                                                     {!isLocked && !p.isGlobal && !isReadOnly && <button onClick={()=>handleDeleteProduct(p.id, false)} className="text-gray-300 hover:text-red-500"><Icons.X size={14}/></button>}
                                                 </div>
                                                 <div className="text-xs text-gray-500 truncate">{p.brand} • {p.category}</div>
                                                 <div className="flex items-center mt-1"><span className="text-sm text-gray-400 mr-1">$</span><span className="font-bold text-gray-700 w-20">{p.price}</span></div>
                                             </div>
                                             <div className={`w-16 flex items-center justify-center border-x px-1 ${isLocked?'opacity-40':''}`}>
-                                                {!isReadOnly && <button onClick={()=>handleQty(p.id, -1, 'p')} className="px-1 text-gray-400"><Icons.Minus size={12}/></button>}
+                                                {!isReadOnly && <button onClick={()=>{const n=Math.max(0,(p.plannedQty||0)-1); handleQty(p.id, -1, 'p')}} className="px-1 text-gray-400"><Icons.Minus size={12}/></button>}
                                                 <span className="font-bold text-gray-600 w-6 text-center text-lg">{p.plannedQty}</span>
-                                                {!isReadOnly && <button onClick={()=>handleQty(p.id, 1, 'p')} className="px-1 text-gray-400"><Icons.Plus size={12}/></button>}
+                                                {!isReadOnly && <button onClick={()=>{const n=(p.plannedQty||0)+1; handleQty(p.id, 1, 'p')}} className="px-1 text-gray-400"><Icons.Plus size={12}/></button>}
                                             </div>
                                             <div className="w-28 flex items-center justify-between pl-3">
-                                                {!isReadOnly && <button onClick={()=>handleQty(p.id, -1, 'a')} className="w-10 h-10 bg-white border rounded shadow-sm flex items-center justify-center text-gray-600"><Icons.Minus size={18}/></button>}
+                                                {!isReadOnly && <button onClick={()=>{const n=Math.max(0,(p.actualQty||0)-1); handleQty(p.id, -1, 'a')}} className="w-10 h-10 bg-white border rounded shadow-sm flex items-center justify-center text-gray-600"><Icons.Minus size={18}/></button>}
                                                 <span className={`text-xl font-bold ${p.actualQty>0?'text-green-600':'text-gray-300'}`}>{p.actualQty}</span>
-                                                {!isReadOnly && <button onClick={()=>handleQty(p.id, 1, 'a')} className="w-10 h-10 bg-blue-600 text-white rounded shadow-md flex items-center justify-center active:scale-95"><Icons.Plus size={18}/></button>}
+                                                {!isReadOnly && <button onClick={()=>{const n=(p.actualQty||0)+1; handleQty(p.id, 1, 'a')}} className="w-10 h-10 bg-blue-600 text-white rounded shadow-md flex items-center justify-center active:scale-95"><Icons.Plus size={18}/></button>}
                                             </div>
                                         </div>
                                     ))}
@@ -471,7 +477,7 @@
 
                     {showDeleteConfirm && <div className="fixed inset-0 z-[70] bg-black/50 flex items-center justify-center p-6"><div className="bg-white rounded-xl p-6 max-w-xs text-center shadow-2xl border-t-4 border-red-500"><Icons.AlertTriangle size={40} className="mx-auto text-red-500 mb-4"/><h3 className="font-bold text-lg text-gray-800 mb-2">¿Eliminar?</h3><p className="text-sm text-gray-600 mb-6">Se borrará de la base de datos.</p><div className="flex gap-3"><button onClick={()=>setShowDeleteConfirm(null)} className="flex-1 py-2 border rounded font-bold text-gray-600">Cancelar</button><button onClick={()=>handleDeleteProduct(showDeleteConfirm, true)} className="flex-1 py-2 bg-red-600 text-white rounded font-bold shadow">ELIMINAR</button></div></div></div>}
 
-                    {showSettings && <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4"><div className="bg-white rounded-xl w-full max-w-sm p-5 space-y-3"><div className="flex justify-between mb-4"><h3 className="font-bold">Ajustes</h3><button onClick={()=>setShowSettings(false)}><Icons.X size={20}/></button></div><div className="text-xs text-gray-500 bg-gray-50 p-2 rounded">ID: {user.uid}</div>{isAdmin && <button onClick={handleAdminImport} className="w-full py-3 bg-green-600 text-white rounded font-bold flex justify-center gap-2 mb-2"><Icons.Download size={18}/> Llenar Góndola</button>}{isAdmin && <button onClick={handleResetPlan} className="w-full py-3 border border-orange-200 text-orange-600 rounded font-bold flex justify-center gap-2 mb-2"><Icons.List size={18}/> Reset Plan</button>}<button onClick={handleLogout} className="w-full py-3 border font-bold flex justify-center gap-2"><Icons.LogOut size={18}/> Salir</button></div></div>}
+                    {showSettings && <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4"><div className="bg-white rounded-xl w-full max-w-sm p-5 space-y-3"><div className="flex justify-between mb-4"><h3 className="font-bold">Ajustes</h3><button onClick={()=>setShowSettings(false)}><Icons.X size={20}/></button></div><div className="text-xs text-gray-500 bg-gray-50 p-2 rounded">ID: {user.uid}</div>{isAdmin && <button onClick={handleAdminImport} className="w-full py-3 bg-green-600 text-white rounded font-bold flex justify-center gap-2 mb-2"><Icons.Download size={18}/> Llenar Góndola</button>}<button onClick={handleResetPlan} className="w-full py-3 border border-orange-200 text-orange-600 rounded font-bold flex justify-center gap-2 mb-2"><Icons.List size={18}/> Reset Plan</button><button onClick={handleLogout} className="w-full py-3 border font-bold flex justify-center gap-2"><Icons.LogOut size={18}/> Salir</button></div></div>}
                     
                     {showInstallModal && <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-6 animate-fade-in" onClick={() => setShowInstallModal(false)}><div className="bg-white rounded-xl p-6 max-w-sm text-center shadow-2xl relative" onClick={e => e.stopPropagation()}><button onClick={() => setShowInstallModal(false)} className="absolute top-2 right-2 text-gray-400"><Icons.X size={20}/></button><h3 className="text-lg font-bold text-gray-800 mb-2">Instalar Nini App</h3><p className="text-sm text-gray-600 mb-4">Para instalar esta web como una App en tu iPhone:</p><div className="space-y-3 text-sm text-left bg-gray-50 p-4 rounded-lg"><div className="flex items-center gap-3"><Icons.Share size={20} className="text-blue-500"/> <span>1. Toca el botón <b>Compartir</b> abajo.</span></div><div className="flex items-center gap-3"><Icons.Plus size={20} className="text-gray-600 border border-gray-400 rounded p-0.5"/> <span>2. Elige <b>"Agregar a Inicio"</b>.</span></div></div></div></div>}
 
