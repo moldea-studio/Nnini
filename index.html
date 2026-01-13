@@ -342,8 +342,8 @@
             };
 
             const handleAdminImport = async () => {
-                if(!confirm("⚠️ ADMIN: Se borrará la Góndola y se re-importará. ¿Seguro?")) return;
-                setStatusMsg("Borrando..."); setShowSettings(false);
+                if(!confirm("⚠️ ADMIN: Se borrará y re-importará la Góndola Global.")) return;
+                setStatusMsg("Importando..."); setShowSettings(false);
                 try {
                     // 1. Borrar todo por lotes
                     const oldSnap = await db.collection('global_products').get();
@@ -382,8 +382,10 @@
                 } catch(e) { alert(e.message); setStatusMsg(''); }
             };
             
+            // Define cleanDB in App scope
             const cleanDB = async () => {
                 if(!confirm("⚠️ ¿Borrar tus productos personales?")) return;
+                
                 if(!isDemo) {
                      const snap = await db.collection(`users/${user.uid}/products`).get();
                      let batch = db.batch();
@@ -495,7 +497,6 @@
                                     </div>
                                     {showBrandFilter && <div className="px-3 py-2 bg-blue-50 border-b"><select onChange={e=>setBrandFilter(e.target.value)} className="w-full p-2 text-sm border rounded"><option value="Todas">Todas las marcas</option>{brands.map(b=><option key={b} value={b}>{b}</option>)}</select></div>}
                                     <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">{cats.map(c=><button key={c} onClick={()=>setFilter(c)} className={`px-3 py-1 rounded-full text-xs font-bold whitespace-nowrap transition-colors ${filter===c?'bg-blue-600 text-white':'bg-gray-100 text-gray-600'}`}>{c}</button>)}</div>
-                                    <div className="flex text-[10px] text-gray-400 font-bold px-3 py-1 bg-gray-50 border-b uppercase tracking-wider shadow-sm"><div className="flex-1">Producto</div><div className="w-16 text-center">Plan</div><div className="w-28 text-center">Carrito</div></div>
                                 </div>
                                 <div className="pb-4">
                                     {filtered.map(p => (
@@ -573,6 +574,75 @@
                     </div>
 
                     {statusMsg && <div className="fixed top-24 left-1/2 -translate-x-1/2 bg-black/80 text-white text-xs px-4 py-2 rounded-full shadow-lg z-50">{statusMsg}</div>}
+                </div>
+            );
+        };
+
+        const HistoryView = ({ history }) => {
+            const [filterDate, setFilterDate] = useState('all');
+            const [expandedId, setExpandedId] = useState(null);
+
+            const availableMonths = useMemo(() => {
+                const unique = new Set();
+                history.forEach(h => {
+                    try {
+                        const d = new Date(h.date);
+                        if (!isNaN(d)) unique.add(JSON.stringify({ value: `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`, label: d.toLocaleString('es-AR', { month: 'long', year: 'numeric' }) }));
+                    } catch(e){}
+                });
+                return Array.from(unique).map(s => JSON.parse(s)).sort((a,b) => b.value.localeCompare(a.value));
+            }, [history]);
+
+            const pieData = useMemo(() => {
+                const source = filterDate === 'all' ? history : history.filter(h => h.date.startsWith(filterDate));
+                const map = {}; let tot = 0;
+                source.forEach(h => {
+                    if(h.items) h.items.forEach(i => {
+                        const sub = (i.actualQty||0)*(i.price||0);
+                        map[i.category] = (map[i.category] || 0) + sub;
+                        tot += sub;
+                    });
+                });
+                return Object.entries(map).map(([k,v]) => ({name:k, value:v, percent: tot ? (v/tot)*100 : 0})).sort((a,b)=>b.value-a.value);
+            }, [history, filterDate]);
+
+            const monthlyData = useMemo(() => {
+                const months = Array.from({length: 12}, (_, i) => ({ label: new Date(2024, i, 1).toLocaleString('es-AR', { month: 'short' }).toUpperCase(), total: 0 }));
+                history.forEach(h => { const d = new Date(h.date); if(!isNaN(d)) months[d.getMonth()].total += h.total; });
+                return months;
+            }, [history]);
+
+            const maxMonthly = Math.max(...monthlyData.map(d => d.total), 1);
+            const totalAnnual = monthlyData.reduce((acc, curr) => acc + curr.total, 0);
+            const pieGradient = pieData.length > 0 ? pieData.reduce((acc, cat, idx) => {
+                const prev = pieData.slice(0, idx).reduce((p, c) => p + c.percent, 0);
+                const color = COLORS.chartColors[idx % COLORS.chartColors.length];
+                return `${acc}, ${color} ${prev}% ${prev + cat.percent}%`;
+            }, '').slice(2) : '#ddd 0% 100%';
+
+            return (
+                <div className="p-4 space-y-6 pb-24">
+                    <div className="bg-white rounded-xl shadow border p-4">
+                        <div className="flex justify-between mb-4"><h3 className="font-bold text-gray-700 flex gap-2 text-blue-600"><Icons.PieChart size={18} className="text-blue-500"/> Gasto Rubro</h3>
+                        <div className="relative"><select onChange={e=>setFilterDate(e.target.value)} className="text-xs border rounded bg-gray-50"><option value="all">Todo el Año</option>{availableMonths.map(m=><option key={m.v} value={m.v}>{m.l}</option>)}</select></div></div>
+                        <div className="flex items-center gap-4"><div className="w-32 h-32 rounded-full flex items-center justify-center flex-col shadow-inner" style={{background: `conic-gradient(${pieGrad})`}}><div className="bg-white w-24 h-24 rounded-full flex flex-col items-center justify-center shadow-sm"><span className="text-[9px] text-gray-400">TOTAL</span><span className="text-xs font-bold">${Math.round(pieData.reduce((a,b)=>a+b.value,0)).toLocaleString('es-AR')}</span></div></div><div className="flex-1 space-y-1">{pieData.slice(0,5).map((c,i)=>(<div key={i} className="flex justify-between text-xs"><span>{c.name}</span><span className="font-bold">{Math.round(c.percent)}%</span></div>))}</div></div>
+                    </div>
+                    <div className="bg-white rounded-xl shadow border p-4">
+                        <div className="flex justify-between mb-4"><h3 className="font-bold text-gray-700">Anual</h3><span className="text-xs font-bold bg-blue-50 text-blue-600 px-2 py-1 rounded">${totalAnnual.toLocaleString('es-AR')}</span></div>
+                        <div className="flex items-end gap-1 h-32 border-b pb-2">{monthlyData.map((d,i)=>(<div key={i} className="flex-1 flex flex-col items-center gap-1 h-full justify-end group"><div className="w-full relative flex items-end justify-center h-full"><div className="w-full rounded-t-sm transition-all" style={{height: d.total>0?`${(d.total/maxMonthly)*100}%`:'4px', background: d.total>0?(i%2===0?COLORS.bar1:COLORS.bar2):COLORS.gray}}></div>{d.total > 0 && <div className="absolute -top-6 bg-black text-white text-[9px] px-1 rounded opacity-0 group-hover:opacity-100">${d.total.toLocaleString('es-AR')}</div>}</div><span className="text-[8px] font-bold text-gray-500">{d.label}</span></div>))}</div>
+                    </div>
+                    <div className="bg-white rounded-xl shadow border overflow-hidden">
+                        <div className="bg-gray-50 px-4 py-2 border-b font-bold text-xs text-gray-500">HISTORIAL</div>
+                        {history.map(h => (
+                            <div key={h.id} className="border-b last:border-0">
+                                <div onClick={()=>setExpandedId(expandedId===h.id?null:h.id)} className="px-4 py-3 flex justify-between items-center hover:bg-gray-50 cursor-pointer">
+                                    <div><div className="font-bold text-sm">{new Date(h.date).toLocaleDateString('es-AR')}</div><div className="text-xs text-gray-400">{h.items.length} items</div></div>
+                                    <div className="flex items-center gap-2"><span className="font-bold text-blue-600">${h.total.toLocaleString('es-AR')}</span><Icons.ChevronDown size={16}/></div>
+                                </div>
+                                {expandedId === h.id && <div className="bg-gray-50 p-3 text-xs border-t">{h.items.map((i,x)=><div key={x} className="flex justify-between mb-1 pb-1 border-b border-dashed last:border-0 pb-1"><span>{i.actualQty}x {i.name}</span><span>${i.price}</span></div>)}</div>}
+                            </div>
+                        ))}
+                    </div>
                 </div>
             );
         };
