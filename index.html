@@ -7,6 +7,7 @@
     
     <meta name="theme-color" content="#ffffff">
     <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <link rel="apple-touch-icon" href="https://i.imgur.com/23tlEnQ.jpeg">
     <link rel="manifest" href="data:application/manifest+json;base64,ewogICJuYW1lIjogIk5pbmkgQ2xvdWQiLAogICJzaG9ydF9uYW1lIjogIk5pbmkiLAogICJzdGFydF91cmwiOiAiLiIsCiAgImRpc3BsYXkiOiAic3RhbmRhbG9uZSIsCiAgImJhY2tncm91bmRfY29sb3IiOiAiIzAwNGFhZCIsCiAgImljb25zIjogWwogICAgewogICAgICAic3JjIjogImh0dHBzOi8vaS5pbWd1ci5jb20vMjN0bEVuUS5qcGVnIiwKICAgICAgInNpemVzIjogIjUxMng1MTIiLAogICAgICAidHlwZSI6ICJpbWFnZS9qcGVnIgogICAgfQogIF0KfQ==">
 
@@ -29,6 +30,7 @@
             padding: 0; 
             font-family: -apple-system, system-ui, sans-serif; 
             background-color: #f9fafb;
+            overscroll-behavior: none;
         }
         #root { height: 100%; width: 100%; display: flex; flex-direction: column; }
         
@@ -36,8 +38,6 @@
         input, select { font-size: 16px; }
         .loader { width:30px; height:30px; border:3px solid #eee; border-top-color:#004aad; border-radius:50%; animation:spin 1s infinite linear; }
         @keyframes spin { 100% { transform:rotate(360deg); } }
-        .live-dot { width: 8px; height: 8px; background-color: #22c55e; border-radius: 50%; animation: pulse 2s infinite; position: absolute; top: 10px; left: 50%; transform: translateX(-50%); z-index: 60; pointer-events: none; }
-        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
     </style>
 </head>
 <body class="text-gray-800">
@@ -50,13 +50,36 @@
     <script type="text/babel">
         const { useState, useEffect, useMemo } = React;
 
+        // --- CONFIG ---
+        const firebaseConfig = {
+          apiKey: "AIzaSyD1XQbCn5DjBr6mSJ2LyAihW6_pRpcMdLs",
+          authDomain: "nini-app-61a6a.firebaseapp.com",
+          projectId: "nini-app-61a6a",
+          storageBucket: "nini-app-61a6a.firebasestorage.app",
+          messagingSenderId: "1019944365082",
+          appId: "1:1019944365082:web:3e921a4207a846306235a3"
+        };
+        const ADMIN_EMAIL = "worlddigital2011@gmail.com";
+        const SHEET_ID = "1Yz_Br2J41diPtd-PL8lLE_Q8eQex-Vf7ifkIqdEqQEQ";
+        const LINK_HOJA_PRODUCTOS_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=LINK_HOJA_PRODUCTOS`; 
+        const LINK_HOJA_HISTORIAL_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=LINK_HOJA_HISTORIAL`;
+
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        const COLORS = {
+            blue: '#004aad', red: '#e31d2b', bg: '#f8f9fa',
+            bar1: '#93C5FD', bar2: '#60A5FA', gray: '#E5E7EB',
+            pie: ['#93C5FD', '#FCA5A5', '#86EFAC', '#FDE047', '#D8B4FE', '#F9A8D4', '#67E8F9']
+        };
+
         // --- ICONOS ---
         const IconBase = ({ children, size=24, className="", ...rest }) => (
             <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} {...rest}>{children}</svg>
         );
 
         const Icons = {
-            AlertTriangle: (props) => <IconBase {...props}><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></IconBase>,
             Search: (props) => <IconBase {...props}><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></IconBase>,
             Trash: (props) => <IconBase {...props}><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></IconBase>,
             Plus: (props) => <IconBase {...props}><path d="M5 12h14"/><path d="M12 5v14"/></IconBase>,
@@ -76,16 +99,16 @@
             Share: (props) => <IconBase {...props}><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" x2="12" y1="2" y2="15"/></IconBase>,
             User: (props) => <IconBase {...props}><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></IconBase>,
             LogOut: (props) => <IconBase {...props}><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></IconBase>,
+            AlertTriangle: (props) => <IconBase {...props}><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></IconBase>,
             Settings: (props) => <IconBase {...props}><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.09a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></IconBase>,
-            Google: (props) => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" {...props}><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>,
             RefreshCw: (props) => <IconBase {...props}><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M3 21v-5h5"/></IconBase>,
             Edit: (props) => <IconBase {...props}><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></IconBase>,
-            Broom: (props) => <IconBase {...props}><path d="m9.06 11.9 8.07-8.06a2.85 2.85 0 1 1 4.03 4.03l-8.06 8.08"/><path d="M7.07 14.94c-1.66 0-3 1.35-3 3.02 0 1.33-2.5 1.52-2.5 1.52S4.16 21 7.82 21c1.67 0 3.02-1.35 3.02-3.02v-3.03"/></IconBase>
+            Broom: (props) => <IconBase {...props}><path d="m9.06 11.9 8.07-8.06a2.85 2.85 0 1 1 4.03 4.03l-8.06 8.08"/><path d="M7.07 14.94c-1.66 0-3 1.35-3 3.02 0 1.33-2.5 1.52-2.5 1.52S4.16 21 7.82 21c1.67 0 3.02-1.35 3.02-3.02v-3.03"/></IconBase>,
+            Google: (props) => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" {...props}><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
         };
 
         const INITIAL_PRODUCTS = [];
 
-        // --- ERROR BOUNDARY ---
         class ErrorBoundary extends React.Component {
             constructor(props) { super(props); this.state = { hasError: false, error: null }; }
             static getDerivedStateFromError(error) { return { hasError: true, error }; }
@@ -99,7 +122,7 @@
         const AdBanner = () => <div className="bg-white border-b border-gray-100 py-3 px-4 flex justify-center shrink-0"><div className="w-full max-w-sm h-12 bg-gray-100 rounded border border-dashed border-gray-300 flex items-center justify-center text-xs text-gray-400">ESPACIO PUBLICITARIO (ADS)</div></div>;
 
         // --- SUBCOMPONENTES ---
-        const ProductFormModal = ({ products, productToEdit, onClose, onSave }) => {
+        const ProductFormModal = ({ products, productToEdit, onClose, onSave, onDelete }) => {
             const [name, setName] = useState('');
             const [cat, setCat] = useState('');
             const [isNewCat, setIsNewCat] = useState(false);
@@ -113,6 +136,7 @@
                     setCat(productToEdit.category);
                     setBrand(productToEdit.brand);
                     setPrice(productToEdit.price);
+                    setIsNewCat(false); setIsNewBrand(false);
                 }
             }, [productToEdit]);
             
@@ -151,7 +175,17 @@
                         <div><label className="text-xs font-bold text-gray-500">Rubro</label>{!isNewCat ? (<select value={cat} onChange={e=>{if(e.target.value==='NEW'){setIsNewCat(true);setCat('')}else setCat(e.target.value)}} className="w-full border p-2 rounded bg-white"><option value="" disabled>Seleccionar...</option>{existingCats.map(c=><option key={c} value={c}>{c}</option>)}<option value="NEW">+ Nuevo rubro...</option></select>) : (<div className="flex gap-1"><input value={cat} onChange={e=>setCat(e.target.value)} className="w-full border p-2 rounded" placeholder="Nombre del rubro" required/><button type="button" onClick={()=>setIsNewCat(false)} className="text-red-500 p-2"><Icons.X size={16}/></button></div>)}</div>
                         <div><label className="text-xs font-bold text-gray-500">Marca</label>{!isNewBrand && existingBrands.length > 0 ? (<select value={brand} onChange={e=>{if(e.target.value==='NEW'){setIsNewBrand(true);setBrand('')}else setBrand(e.target.value)}} className="w-full border p-2 rounded bg-white"><option value="">Genérico / Sin Marca</option>{existingBrands.map(b=><option key={b} value={b}>{b}</option>)}<option value="NEW">+ Nueva marca...</option></select>) : (<div className="flex gap-1"><input value={brand} onChange={e=>setBrand(e.target.value)} className="w-full border p-2 rounded" placeholder="Marca (Opcional)" />{existingBrands.length > 0 && <button type="button" onClick={()=>setIsNewBrand(false)} className="text-red-500 p-2"><Icons.X size={16}/></button>}</div>)}</div>
                         <div><label className="text-xs font-bold text-gray-500">Precio</label><input value={price} onChange={e=>setPrice(e.target.value)} type="number" className="w-full border p-2 rounded" placeholder="$0" /></div>
-                        <button className="w-full bg-blue-600 text-white font-bold py-3 rounded mt-2">Guardar</button>
+                        
+                        <div className="flex gap-2 mt-2">
+                             {productToEdit && onDelete && (
+                                <button type="button" onClick={() => onDelete(productToEdit.id, productToEdit.isGlobal)} className="flex-1 bg-red-100 text-red-600 font-bold py-3 rounded">
+                                    Eliminar
+                                </button>
+                             )}
+                             <button type="submit" className="flex-1 bg-blue-600 text-white font-bold py-3 rounded">
+                                Guardar
+                             </button>
+                        </div>
                     </form>
                 </div>
             );
@@ -193,37 +227,34 @@
             const isAdmin = user && user.email === ADMIN_EMAIL;
             const isReadOnly = !!viewTargetUid && viewTargetUid !== user?.uid;
 
-            // --- CONFIG ---
-            const firebaseConfig = {
-              apiKey: "AIzaSyD1XQbCn5DjBr6mSJ2LyAihW6_pRpcMdLs",
-              authDomain: "nini-app-61a6a.firebaseapp.com",
-              projectId: "nini-app-61a6a",
-              storageBucket: "nini-app-61a6a.firebasestorage.app",
-              messagingSenderId: "1019944365082",
-              appId: "1:1019944365082:web:3e921a4207a846306235a3"
-            };
-            const ADMIN_EMAIL = "worlddigital2011@gmail.com";
-            const SHEET_ID = "1Yz_Br2J41diPtd-PL8lLE_Q8eQex-Vf7ifkIqdEqQEQ";
-            const LINK_HOJA_PRODUCTOS_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=LINK_HOJA_PRODUCTOS`; 
-            const LINK_HOJA_HISTORIAL_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=LINK_HOJA_HISTORIAL`;
-
-            if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-            const auth = firebase.auth();
-            const db = firebase.firestore();
-
             useEffect(() => {
                 const unsub = auth.onAuthStateChanged(u => {
                     setUser(u); setLoading(false);
                     if(u) {
                         setView('list');
                         setViewTargetUid(u.uid);
-                        const code = u.uid.slice(0,6).toUpperCase();
-                        setMyShareCode(code);
-                        db.collection('public_codes').doc(code).set({ uid: u.uid, name: u.displayName || 'Anon' });
+                        // Safe access to u.uid
+                        if (u.uid && u.uid.length >= 6) {
+                            const code = u.uid.slice(0,6).toUpperCase();
+                            setMyShareCode(code);
+                            // Registro de código público separado para evitar race conditions
+                        }
                     } else { setView('login'); }
                 });
                 return () => unsub();
             }, []);
+
+            // Efecto separado para registrar código público cuando el usuario ya está cargado
+            useEffect(() => {
+                if (user && user.uid && !isDemo) {
+                     const code = user.uid.slice(0,6).toUpperCase();
+                     db.collection('public_codes').doc(code).set({ 
+                         uid: user.uid, 
+                         name: user.displayName || 'Anon' 
+                     }, { merge: true }).catch(err => console.log("Public code reg error (harmless)", err));
+                }
+            }, [user, isDemo]);
+
 
             useEffect(() => {
                 if(!user || isDemo) return;
@@ -309,6 +340,11 @@
                 setShowDeleteConfirm(null);
             };
             
+            const onDeleteFromModal = (id, isGlobal) => {
+                setShowProductModal(false); 
+                setShowDeleteConfirm({id, isGlobal});
+            };
+            
             const handleAdminCleanDuplicates = async () => {
                 if(!confirm("⚠️ ADMIN: ¿Eliminar duplicados en Góndola? Esto puede tardar.")) return;
                 setStatusMsg("Limpiando..."); setShowSettings(false);
@@ -386,13 +422,8 @@
                      const snap = await db.collection(`users/${user.uid}/products`).get();
                      let batch = db.batch();
                      let c = 0;
-                     snap.forEach(d => { 
-                         batch.delete(d.ref);
-                         c++;
-                         if(c >= 400) { batch.commit(); batch = db.batch(); c=0; }
-                     });
+                     snap.forEach(d => { batch.delete(d.ref); c++; if(c >= 400) { batch.commit(); batch = db.batch(); c=0; } });
                      if(c > 0) await batch.commit();
-                     localStorage.removeItem('imported_'+user.uid);
                 }
                 alert("Limpio.");
             };
@@ -464,8 +495,11 @@
                     <div className="flex-none bg-white shadow-md z-50">
                         <div className="flex justify-between items-center px-4 py-2 border-b">
                             <div className="h-14 w-40 overflow-hidden flex items-center -ml-3"><img src="https://i.imgur.com/23tlEnQ.jpeg" className="h-full w-full object-contain scale-[1.8]" /></div>
-                            {/* PUNTO VERDE TESTIGO */}
-                            <div className="live-dot" title="v3.0 Final"></div>
+                            <div className="flex flex-col items-center justify-center">
+                                <div className={`text-[10px] font-bold flex flex-col items-center ${isReadOnly ? 'text-orange-600' : 'text-blue-800'}`}>
+                                    <span>Hola, {user?.displayName ? user.displayName.split(' ')[0] : 'Invitado'} 👋</span>
+                                </div>
+                            </div>
                             <div className="flex gap-2 items-center">
                                 {view === 'list' && <div className="flex items-center gap-2"><div className="flex items-center bg-gray-50 rounded-lg p-1 px-3 border shadow-sm"><div className="flex flex-col items-end mr-3"><span className="text-[9px] text-gray-500 font-bold uppercase">Plan</span><span className="text-sm font-medium">${totalPlan.toLocaleString('es-AR')}</span></div><div className="w-px h-6 bg-gray-300"></div><div className="flex flex-col items-end ml-3"><span className="text-[10px] text-blue-600 font-black uppercase">Carrito</span><span className="text-2xl font-black text-blue-900 leading-none">${totalCart.toLocaleString('es-AR')}</span></div></div><button onClick={finishPurchase} disabled={isReadOnly} className={`text-white p-2 rounded-full shadow active:scale-95 ${isReadOnly?'bg-gray-400':'bg-blue-600'}`}><Icons.Save size={18}/></button></div>}
                                 {view === 'shared' && <div className="text-xs font-bold text-orange-600 flex items-center gap-1 bg-orange-50 px-3 py-1 rounded border border-orange-100"><Icons.User size={14}/> Compartido</div>}
@@ -475,7 +509,7 @@
                         </div>
 
                         {view === 'list' && (
-                            <div className="p-3 border-b flex flex-col gap-3 bg-white">
+                            <div className="bg-white p-3 border-b flex flex-col gap-3">
                                 {isReadOnly && <div className="bg-orange-100 p-2 text-center text-xs text-orange-800 font-bold flex justify-between items-center px-4 rounded mb-2"><span>Modo Espejo (Solo Lectura)</span><button onClick={()=>setViewTargetUid(user.uid)} className="underline">Salir</button></div>}
                                 <div className="flex gap-2">
                                     <button onClick={()=>setIsLocked(!isLocked)} className={`w-10 h-10 flex items-center justify-center rounded-lg border ${isLocked?'bg-orange-50 text-orange-600':'bg-gray-50 text-gray-400'}`}>{isLocked?<Icons.Lock size={18}/>:<Icons.Unlock size={18}/>}</button>
@@ -533,8 +567,7 @@
                         )}
                     </div>
 
-                    {/* MODALES & EXTRAS */}
-                    {showProductModal && <ProductFormModal products={productsWithCart} productToEdit={productToEdit} onClose={()=>setShowProductModal(false)} onSave={handleSaveProduct} />}
+                    {showProductModal && <ProductFormModal products={productsWithCart} productToEdit={productToEdit} onClose={()=>setShowProductModal(false)} onSave={handleSaveProduct} onDelete={onDeleteFromModal} />}
                     {showDeleteConfirm && <div className="fixed inset-0 z-[70] bg-black/50 flex items-center justify-center p-6"><div className="bg-white rounded-xl p-6 max-w-xs text-center shadow-2xl border-t-4 border-red-500"><Icons.AlertTriangle size={40} className="mx-auto text-red-500 mb-4"/><h3 className="font-bold text-lg text-gray-800 mb-2">¿Eliminar Producto?</h3><p className="text-sm text-gray-600 mb-6">Esta acción borrará el producto de la Base de Datos General permanentemente.</p><div className="flex gap-3"><button onClick={()=>setShowDeleteConfirm(null)} className="flex-1 py-2 border rounded font-bold text-gray-600">Cancelar</button><button onClick={()=>handleDeleteProduct(showDeleteConfirm.id, showDeleteConfirm.isGlobal)} className="flex-1 py-2 bg-red-600 text-white rounded font-bold shadow">ELIMINAR</button></div></div></div>}
                     {showSettings && <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4"><div className="bg-white rounded-xl w-full max-w-sm p-5 space-y-3"><div className="flex justify-between mb-4"><h3 className="font-bold">Ajustes</h3><button onClick={()=>setShowSettings(false)}><Icons.X size={20}/></button></div><div className="text-xs text-gray-500 bg-gray-50 p-2 rounded">ID: {user.uid}</div>{isAdmin && <button onClick={handleAdminImport} className="w-full py-3 bg-green-600 text-white rounded font-bold flex justify-center gap-2 mb-2"><Icons.Download size={18}/> Llenar Góndola (Sheet)</button>}{isAdmin && <button onClick={handleAdminCleanDuplicates} className="w-full py-3 border border-orange-200 text-orange-600 rounded font-bold flex justify-center gap-2 mb-2"><Icons.Broom size={18}/> Limpiar Duplicados</button>}<button onClick={handleResetPlan} className="w-full py-3 border border-orange-200 text-orange-600 rounded font-bold flex justify-center gap-2 mb-2"><Icons.List size={18}/> Reset Plan</button><button onClick={cleanDB} className="w-full py-3 border text-red-600 font-bold flex justify-center gap-2"><Icons.Trash size={18}/> Resetear Cuenta</button><button onClick={handleLogout} className="w-full py-3 border font-bold flex justify-center gap-2"><Icons.LogOut size={18}/> Salir</button></div></div>}
                     {showInstallModal && <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-6 animate-fade-in" onClick={() => setShowInstallModal(false)}><div className="bg-white rounded-xl p-6 max-w-sm text-center shadow-2xl relative" onClick={e => e.stopPropagation()}><button onClick={() => setShowInstallModal(false)} className="absolute top-2 right-2 text-gray-400"><Icons.X size={20}/></button><h3 className="text-lg font-bold text-gray-800 mb-2">Instalar Nini App</h3><p className="text-sm text-gray-600 mb-4">Para instalar: menú del navegador > Agregar a inicio</p></div></div>}
@@ -548,9 +581,11 @@
                             <button onClick={() => setView('history')} className={`flex flex-col items-center justify-center w-full h-full ${view === 'history' ? 'text-white' : 'text-white/50'}`}><Icons.PieChart size={24} strokeWidth={2.5} /><span className="text-[10px] font-bold mt-1">Historial</span></button>
                         </div>
                     </div>
+
+                    {statusMsg && <div className="fixed top-24 left-1/2 -translate-x-1/2 bg-black/80 text-white text-xs px-4 py-2 rounded-full shadow-lg z-50">{statusMsg}</div>}
                 </div>
             );
-        }
+        };
 
         const root = ReactDOM.createRoot(document.getElementById('root'));
         root.render(<ErrorBoundary><App /></ErrorBoundary>);
