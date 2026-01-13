@@ -8,13 +8,8 @@
     <meta name="theme-color" content="#ffffff">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    
-    <!-- ICONOS PARA PESTAÑA Y APP -->
-    <link rel="icon" type="image/jpeg" href="https://i.imgur.com/23tlEnQ.jpeg">
-    <link rel="shortcut icon" type="image/jpeg" href="https://i.imgur.com/23tlEnQ.jpeg">
     <link rel="apple-touch-icon" href="https://i.imgur.com/23tlEnQ.jpeg">
-    
-    <link rel="manifest" href="data:application/manifest+json;base64,ewogICJuYW1lIjogIk5pbmkgQ2xvdWQiLAogICJzaG9ydF9uYW1lIjogIk5pbmkiLAogICJzdGFydF91cmwiOiAiLiIsCiAgImRpc3BsYXkiOiAic3RhbmRhbG9uZSIsCiAgImJhY2tncm91bmRfY29sb3IiOiAiI2ZmZmZmZiIsCiAgInRoZW1lX2NvbG9yIjogIiMwMDRhYWQiLAogICJpY29ucyI6IFsKICAgIHsKICAgICAgInNyYyI6ICJodHRwczovL2kuaW1ndXIuY29tLzIzdGxFblEuanBlZyIsCiAgICAgICJzaXplcyI6ICI1MTJ4NTEyIiwKICAgICAgInR5cGUiOiAiaW1hZ2UvanBlZyIKICAgIH0KICBdCn0=">
+    <link rel="manifest" href="data:application/manifest+json;base64,ewogICJuYW1lIjogIk5pbmkgQ2xvdWQiLAogICJzaG9ydF9uYW1lIjogIk5pbmkiLAogICJzdGFydF91cmwiOiAiLiIsCiAgImRpc3BsYXkiOiAic3RhbmRhbG9uZSIsCiAgImJhY2tncm91bmRfY29sb3IiOiAiIzAwNGFhZCIsCiAgImljb25zIjogWwogICAgewogICAgICAic3JjIjogImh0dHBzOi8vaS5pbWd1ci5jb20vMjN0bEVuUS5qcGVnIiwKICAgICAgInNpemVzIjogIjUxMng1MTIiLAogICAgICAidHlwZSI6ICJpbWFnZS9qcGVnIgogICAgfQogIF0KfQ==">
 
     <script src="https://cdn.tailwindcss.com"></script>
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
@@ -32,6 +27,9 @@
         input, select { font-size: 16px; }
         .loader { width:30px; height:30px; border:3px solid #eee; border-top-color:#004aad; border-radius:50%; animation:spin 1s infinite linear; }
         @keyframes spin { 100% { transform:rotate(360deg); } }
+        /* Animación suave para los modales */
+        .fade-in { animation: fadeIn 0.3s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body class="text-gray-800">
@@ -89,35 +87,62 @@
             RefreshCw: (p) => <IconBase {...p}><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M3 21v-5h5"/></IconBase>,
             Edit: (p) => <IconBase {...p}><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></IconBase>,
             Broom: (p) => <IconBase {...p}><path d="m9.06 11.9 8.07-8.06a2.85 2.85 0 1 1 4.03 4.03l-8.06 8.08"/><path d="M7.07 14.94c-1.66 0-3 1.35-3 3.02 0 1.33-2.5 1.52-2.5 1.52S4.16 21 7.82 21c1.67 0 3.02-1.35 3.02-3.02v-3.03"/></IconBase>,
-            Google: (p) => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" {...p}><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+            Google: (p) => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" {...p}><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>,
+            Help: (p) => <IconBase {...p}><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></IconBase>
         };
 
         const INITIAL_PRODUCTS = [];
 
-        // --- ERROR BOUNDARY ---
         class ErrorBoundary extends React.Component {
             constructor(props) { super(props); this.state = { hasError: false, error: null }; }
             static getDerivedStateFromError(error) { return { hasError: true, error }; }
             copyError = () => { navigator.clipboard.writeText(this.state.error?.toString()).then(()=>alert("Copiado")); }
             render() {
-                if (this.state.hasError) return (
-                    <div className="flex flex-col items-center justify-center h-screen p-6 text-center bg-gray-50">
-                        <Icons.AlertTriangle className="text-red-500 w-12 h-12 mx-auto mb-4" />
-                        <h2 className="text-xl font-bold text-gray-800 mb-2">Algo salió mal</h2>
-                        <p className="text-xs text-red-600 mb-4 font-mono bg-red-50 p-2 rounded max-w-full overflow-auto text-left">
-                            {this.state.error?.toString()}
-                        </p>
-                        <button onClick={this.copyError} className="bg-blue-600 text-white px-4 py-2 rounded font-bold mb-2 w-full">COPIAR ERROR</button>
-                        <button onClick={()=>{localStorage.clear(); window.location.reload()}} className="bg-gray-200 px-4 py-2 rounded">Reiniciar</button>
-                    </div>
-                );
+                if (this.state.hasError) return <div className="p-10 text-center"><Icons.AlertTriangle className="mx-auto text-red-500 mb-2"/><h2 className="font-bold">Error</h2><p className="text-xs text-gray-500 mb-4">{this.state.error?.message}</p><button onClick={this.copyError} className="bg-blue-600 text-white px-4 py-2 rounded font-bold mb-2 w-full">Copiar Error</button><br/><button onClick={()=>{localStorage.clear(); window.location.reload()}} className="bg-gray-200 px-4 py-2 rounded font-bold w-full">REINICIAR</button></div>;
                 return this.props.children;
             }
         }
 
         const AdBanner = () => <div className="bg-white border-b border-gray-100 py-3 px-4 flex justify-center shrink-0"><div className="w-full max-w-sm h-12 bg-gray-100 rounded border border-dashed border-gray-300 flex items-center justify-center text-xs text-gray-400">ESPACIO PUBLICITARIO (ADS)</div></div>;
 
-        // --- SUBCOMPONENTES MOVIDOS AL INICIO ---
+        // --- COMPONENTES MODALES Y FORMS ---
+        
+        const TutorialModal = ({ title, steps, onClose, id }) => {
+            const [dontShow, setDontShow] = useState(false);
+            
+            const handleClose = () => {
+                if(dontShow) localStorage.setItem(id, 'true');
+                onClose();
+            };
+
+            return (
+                <div className="fixed inset-0 z-[80] bg-black/60 flex items-center justify-center p-4 fade-in">
+                    <div className="bg-white rounded-xl max-w-sm w-full p-6 shadow-2xl relative">
+                        <button onClick={handleClose} className="absolute top-3 right-3 text-gray-400 hover:text-gray-600"><Icons.X size={24}/></button>
+                        <div className="mb-4 text-center">
+                            <h3 className="text-xl font-black text-blue-700 mb-1">{title}</h3>
+                            <div className="w-16 h-1 bg-blue-500 mx-auto rounded-full"></div>
+                        </div>
+                        <div className="space-y-4 text-sm text-gray-600 mb-6">
+                            {steps.map((step, i) => (
+                                <div key={i} className="flex gap-3">
+                                    <div className="font-bold text-blue-600 bg-blue-50 w-6 h-6 flex items-center justify-center rounded-full shrink-0">{i+1}</div>
+                                    <p dangerouslySetInnerHTML={{__html: step}}></p>
+                                </div>
+                            ))}
+                        </div>
+                        <div className="flex items-center gap-2 mb-4 p-3 bg-gray-50 rounded-lg cursor-pointer" onClick={()=>setDontShow(!dontShow)}>
+                            <div className={`w-5 h-5 border-2 rounded flex items-center justify-center ${dontShow ? 'bg-blue-600 border-blue-600' : 'border-gray-400'}`}>
+                                {dontShow && <Icons.Check size={14} className="text-white"/>}
+                            </div>
+                            <span className="text-xs text-gray-500 select-none">No mostrar de nuevo</span>
+                        </div>
+                        <button onClick={handleClose} className="w-full bg-blue-600 text-white font-bold py-3 rounded-lg shadow-lg hover:bg-blue-700 transition">¡Entendido!</button>
+                    </div>
+                </div>
+            );
+        };
+
         const ProductFormModal = ({ products, productToEdit, onClose, onSave, onDelete }) => {
             const [name, setName] = useState('');
             const [cat, setCat] = useState('');
@@ -152,12 +177,7 @@
             const handleSubmit = (e) => {
                 e.preventDefault();
                 const cleanNum = s => parseFloat(String(s).replace(/\./g,'').replace(',','.')) || 0;
-                onSave({ 
-                    name, 
-                    category: cat || 'Varios', 
-                    brand: brand || 'Genérico', 
-                    price: cleanNum(price) 
-                });
+                onSave({ name, category: cat || 'Varios', brand: brand || 'Genérico', price: cleanNum(price) });
             };
 
             return (
@@ -171,16 +191,9 @@
                         <div><label className="text-xs font-bold text-gray-500">Rubro</label>{!isNewCat ? (<select value={cat} onChange={e=>{if(e.target.value==='NEW'){setIsNewCat(true);setCat('')}else setCat(e.target.value)}} className="w-full border p-2 rounded bg-white"><option value="" disabled>Seleccionar...</option>{existingCats.map(c=><option key={c} value={c}>{c}</option>)}<option value="NEW">+ Nuevo rubro...</option></select>) : (<div className="flex gap-1"><input value={cat} onChange={e=>setCat(e.target.value)} className="w-full border p-2 rounded" placeholder="Nombre del rubro" required/><button type="button" onClick={()=>setIsNewCat(false)} className="text-red-500 p-2"><Icons.X size={16}/></button></div>)}</div>
                         <div><label className="text-xs font-bold text-gray-500">Marca</label>{!isNewBrand && existingBrands.length > 0 ? (<select value={brand} onChange={e=>{if(e.target.value==='NEW'){setIsNewBrand(true);setBrand('')}else setBrand(e.target.value)}} className="w-full border p-2 rounded bg-white"><option value="">Genérico / Sin Marca</option>{existingBrands.map(b=><option key={b} value={b}>{b}</option>)}<option value="NEW">+ Nueva marca...</option></select>) : (<div className="flex gap-1"><input value={brand} onChange={e=>setBrand(e.target.value)} className="w-full border p-2 rounded" placeholder="Marca (Opcional)" />{existingBrands.length > 0 && <button type="button" onClick={()=>setIsNewBrand(false)} className="text-red-500 p-2"><Icons.X size={16}/></button>}</div>)}</div>
                         <div><label className="text-xs font-bold text-gray-500">Precio</label><input value={price} onChange={e=>setPrice(e.target.value)} type="number" className="w-full border p-2 rounded" placeholder="$0" /></div>
-                        
                         <div className="flex gap-2 mt-2">
-                             {productToEdit && onDelete && (
-                                <button type="button" onClick={() => onDelete(productToEdit.id, productToEdit.isGlobal)} className="flex-1 bg-red-100 text-red-600 font-bold py-3 rounded">
-                                    Eliminar
-                                </button>
-                             )}
-                             <button type="submit" className="flex-1 bg-blue-600 text-white font-bold py-3 rounded">
-                                Guardar
-                             </button>
+                             {productToEdit && onDelete && (<button type="button" onClick={() => onDelete(productToEdit.id, productToEdit.isGlobal)} className="flex-1 bg-red-100 text-red-600 font-bold py-3 rounded">Eliminar</button>)}
+                             <button type="submit" className="flex-1 bg-blue-600 text-white font-bold py-3 rounded">Guardar</button>
                         </div>
                     </form>
                 </div>
@@ -227,7 +240,7 @@
                 const prev = pieData.slice(0, idx).reduce((p, c) => p + c.percent, 0);
                 const color = COLORS.pie[idx % COLORS.pie.length];
                 return `${acc}, ${color} ${prev}% ${prev + cat.percent}%`;
-            }, '').slice(2) : '#eee 0% 100%';
+            }, '').slice(2) : '#ddd 0% 100%';
 
             return (
                 <div className="p-4 space-y-6 pb-24">
@@ -260,6 +273,7 @@
             );
         };
 
+        // --- APP ---
         function App() {
             const [user, setUser] = useState(null);
             const [view, setView] = useState('login'); 
@@ -293,6 +307,10 @@
             const [showExportModal, setShowExportModal] = useState(false);
             const [exportContent, setExportContent] = useState('');
 
+            // Tutorials
+            const [showMainHelp, setShowMainHelp] = useState(false);
+            const [showSharedHelp, setShowSharedHelp] = useState(false);
+
             const isAdmin = user && user.email === ADMIN_EMAIL;
             const isReadOnly = !!viewTargetUid && viewTargetUid !== user?.uid;
 
@@ -306,6 +324,10 @@
                             setMyShareCode(code);
                             db.collection('public_codes').doc(code).set({ uid: u.uid, name: u.displayName || 'Anon' });
                         }
+                        
+                        // Check Tutorial Main
+                        if(!localStorage.getItem('nini_help_main')) setShowMainHelp(true);
+
                     } else { setView('login'); }
                 });
                 return () => unsub();
@@ -314,6 +336,7 @@
             useEffect(() => {
                 if(!user || isDemo) return;
                 const targetUid = viewTargetUid || user.uid;
+
                 const unsubGlobal = db.collection('global_products').onSnapshot(snap => setGlobalProducts(snap.docs.map(d => ({id: d.id, ...d.data(), isGlobal: true}))));
                 const unsubUserProd = db.collection(`users/${targetUid}/products`).onSnapshot(snap => setUserProducts(snap.docs.map(d => ({id: d.id, ...d.data(), isGlobal: false}))));
                 const unsubCart = db.collection(`users/${targetUid}/cart`).doc('main').onSnapshot(snap => { if(snap.exists) setCart(snap.data()); else setCart({}); });
@@ -411,6 +434,18 @@
                 setShowHistoryDeleteConfirm(null);
             };
 
+            const resetHelp = () => {
+                localStorage.removeItem('nini_help_main');
+                localStorage.removeItem('nini_help_shared');
+                setShowMainHelp(true);
+                setShowSettings(false);
+            }
+
+            const changeView = (v) => {
+                setView(v);
+                if(v === 'shared' && !localStorage.getItem('nini_help_shared')) setShowSharedHelp(true);
+            }
+
             if(loading) return <div className="h-screen flex flex-col items-center justify-center text-blue-600 font-bold gap-4"><div className="loader"></div>Cargando...</div>;
             if(!user) return (
                 <div className="h-screen bg-gradient-to-b from-blue-900 to-blue-700 flex flex-col items-center justify-center p-8 text-white text-center">
@@ -436,7 +471,20 @@
                                 <div className={`text-[10px] font-bold flex flex-col items-center ${isReadOnly ? 'text-orange-600' : 'text-blue-800'}`}><span>Hola, {user?.displayName ? user.displayName.split(' ')[0] : 'Invitado'} 👋</span></div>
                             </div>
                             <div className="flex gap-2 items-center">
-                                {view === 'list' && <div className="flex items-center gap-2"><div className="flex items-center bg-gray-50 rounded-lg p-1 px-3 border shadow-sm"><div className="flex flex-col items-end mr-3"><span className="text-[9px] text-gray-500 font-bold uppercase">Plan</span><span className="text-sm font-medium">${totalPlan.toLocaleString('es-AR')}</span></div><div className="w-px h-6 bg-gray-300"></div><div className="flex flex-col items-end ml-3"><span className="text-[10px] text-blue-600 font-black uppercase">Carrito</span><span className="text-2xl font-black text-blue-900 leading-none">${totalCart.toLocaleString('es-AR')}</span></div></div><button onClick={finishPurchase} disabled={isReadOnly} className={`text-white p-2 rounded-full shadow active:scale-95 ${isReadOnly?'bg-gray-400':'bg-blue-600'}`}><Icons.Save size={18}/></button></div>}
+                                {view === 'list' && <div className="flex items-center gap-2">
+                                    <div className="flex items-center bg-gray-50 rounded-lg p-1 px-3 border shadow-sm">
+                                        <div className="flex flex-col items-end mr-3">
+                                            <span className="text-[9px] text-orange-600 font-bold uppercase">Plan</span>
+                                            <span className="text-sm font-medium text-orange-800">${totalPlan.toLocaleString('es-AR')}</span>
+                                        </div>
+                                        <div className="w-px h-6 bg-gray-300"></div>
+                                        <div className="flex flex-col items-end ml-3">
+                                            <span className="text-[10px] text-blue-600 font-black uppercase">Carrito</span>
+                                            <span className="text-2xl font-black text-blue-900 leading-none">${totalCart.toLocaleString('es-AR')}</span>
+                                        </div>
+                                    </div>
+                                    <button onClick={finishPurchase} disabled={isReadOnly} className={`text-white p-2 rounded-full shadow active:scale-95 ${isReadOnly?'bg-gray-400':'bg-blue-600'}`}><Icons.Save size={18}/></button>
+                                </div>}
                                 {view === 'shared' && <div className="text-xs font-bold text-orange-600 flex items-center gap-1 bg-orange-50 px-3 py-1 rounded border border-orange-100"><Icons.User size={14}/> Compartido</div>}
                                 {view === 'history' && <div className="text-xs font-bold text-green-600 flex items-center gap-1 bg-green-50 px-3 py-1 rounded border border-green-100"><Icons.Database size={14}/> En Línea</div>}
                                 {view === 'list' && !isReadOnly && <button onClick={()=>setShowSettings(true)} className="p-2 text-gray-400 hover:text-gray-600"><Icons.Settings size={20}/></button>}
@@ -455,7 +503,11 @@
                                 </div>
                                 {showBrandFilter && <div className="px-3 py-2 bg-blue-50 border-b"><select onChange={e=>setBrandFilter(e.target.value)} className="w-full p-2 text-sm border rounded"><option value="Todas">Todas las marcas</option>{brands.map(b=><option key={b} value={b}>{b}</option>)}</select></div>}
                                 <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">{cats.map(c=><button key={c} onClick={()=>setFilter(c)} className={`px-3 py-1 rounded-full text-xs font-bold whitespace-nowrap transition-colors ${filter===c?'bg-blue-600 text-white':'bg-gray-100 text-gray-600'}`}>{c}</button>)}</div>
-                                <div className="flex text-[10px] text-gray-400 font-bold px-3 py-1 bg-gray-50 border-t uppercase tracking-wider shadow-sm"><div className="flex-1">Producto</div><div className="w-16 text-center">Plan</div><div className="w-28 text-center">Carrito</div></div>
+                                <div className="flex text-[10px] font-bold px-3 py-1 border-t uppercase tracking-wider shadow-sm">
+                                    <div className="flex-1 text-gray-400">Producto</div>
+                                    <div className="w-16 text-center text-orange-600 bg-orange-50 rounded-t px-1">Plan</div>
+                                    <div className="w-28 text-center text-blue-600 bg-blue-50 rounded-t px-1 ml-2">Carrito</div>
+                                </div>
                             </div>
                         )}
                     </div>
@@ -475,14 +527,16 @@
                                             <div className="text-xs text-gray-500 truncate">{p.brand} • {p.category}</div>
                                             <div className="flex items-center mt-1"><span className="text-sm text-gray-400 mr-1">$</span><span className="font-bold text-gray-700 w-20">{p.price}</span></div>
                                         </div>
-                                        <div className={`w-16 flex items-center justify-center border-x px-1 ${isLocked?'opacity-40':''}`}>
-                                            {!isReadOnly && <button onClick={()=>{const n=Math.max(0,(p.plannedQty||0)-1); handleQty(p.id, -1, 'p')}} className="px-1 text-gray-400"><Icons.Minus size={12}/></button>}
-                                            <span className="font-bold text-gray-600 w-6 text-center text-lg">{p.plannedQty}</span>
-                                            {!isReadOnly && <button onClick={()=>{const n=(p.plannedQty||0)+1; handleQty(p.id, 1, 'p')}} className="px-1 text-gray-400"><Icons.Plus size={12}/></button>}
+                                        {/* COLUMNA PLAN */}
+                                        <div className={`w-16 flex items-center justify-center border-x border-orange-100 bg-orange-50 px-1 ${isLocked?'opacity-40':''}`}>
+                                            {!isReadOnly && <button onClick={()=>{const n=Math.max(0,(p.plannedQty||0)-1); handleQty(p.id, -1, 'p')}} className="px-1 text-orange-400"><Icons.Minus size={12}/></button>}
+                                            <span className="font-bold text-orange-800 w-6 text-center text-lg">{p.plannedQty}</span>
+                                            {!isReadOnly && <button onClick={()=>{const n=(p.plannedQty||0)+1; handleQty(p.id, 1, 'p')}} className="px-1 text-orange-400"><Icons.Plus size={12}/></button>}
                                         </div>
-                                        <div className="w-28 flex items-center justify-between pl-3">
-                                            {!isReadOnly && <button onClick={()=>{const n=Math.max(0,(p.actualQty||0)-1); handleQty(p.id, -1, 'a')}} className="w-10 h-10 bg-white border rounded shadow-sm flex items-center justify-center text-gray-600"><Icons.Minus size={18}/></button>}
-                                            <span className={`text-xl font-bold ${p.actualQty>0?'text-green-600':'text-gray-300'}`}>{p.actualQty}</span>
+                                        {/* COLUMNA CARRITO */}
+                                        <div className="w-28 flex items-center justify-between pl-3 bg-blue-50 rounded-l-lg ml-2 py-1">
+                                            {!isReadOnly && <button onClick={()=>{const n=Math.max(0,(p.actualQty||0)-1); handleQty(p.id, -1, 'a')}} className="w-10 h-10 bg-white border border-blue-200 rounded shadow-sm flex items-center justify-center text-blue-600"><Icons.Minus size={18}/></button>}
+                                            <span className={`text-xl font-bold ${p.actualQty>0?'text-blue-800':'text-blue-300'}`}>{p.actualQty}</span>
                                             {!isReadOnly && <button onClick={()=>{const n=(p.actualQty||0)+1; handleQty(p.id, 1, 'a')}} className="w-10 h-10 bg-blue-600 text-white rounded shadow-md flex items-center justify-center active:scale-95"><Icons.Plus size={18}/></button>}
                                         </div>
                                     </div>
@@ -503,19 +557,41 @@
                         )}
                     </div>
 
+                    {showMainHelp && <TutorialModal 
+                        id="nini_help_main_v1"
+                        title="¡Bienvenido a Nini Cloud!" 
+                        steps={[
+                            "<strong>1. Plan (Casa):</strong> Agregá lo que te falta en la columna naranja. Usá el candado 🔒 para bloquear y no borrar sin querer.",
+                            "<strong>2. Carrito (Súper):</strong> Al comprar, pasá del Plan al Carrito (Azul). Se suma el total arriba.",
+                            "<strong>3. Guardar:</strong> Al terminar, tocá el disquete 💾 para guardar la compra en el Historial."
+                        ]} 
+                        onClose={()=>setShowMainHelp(false)} 
+                    />}
+
+                    {showSharedHelp && <TutorialModal 
+                        id="nini_help_shared_v1"
+                        title="Modo Compartido 👥" 
+                        steps={[
+                            "Comparte tu <strong>código</strong> con tu pareja o familia.",
+                            "Ellos podrán ver tu lista en tiempo real para saber qué falta.",
+                            "<strong>Importante:</strong> Los invitados solo pueden VER, no editar."
+                        ]} 
+                        onClose={()=>setShowSharedHelp(false)} 
+                    />}
+
                     {showProductModal && <ProductFormModal products={productsWithCart} productToEdit={productToEdit} onClose={()=>setShowProductModal(false)} onSave={handleSaveProduct} onDelete={onDeleteFromModal} />}
                     {showDeleteConfirm && <div className="fixed inset-0 z-[70] bg-black/50 flex items-center justify-center p-6"><div className="bg-white rounded-xl p-6 max-w-xs text-center shadow-2xl border-t-4 border-red-500"><Icons.AlertTriangle size={40} className="mx-auto text-red-500 mb-4"/><h3 className="font-bold text-lg text-gray-800 mb-2">¿Eliminar Producto?</h3><p className="text-sm text-gray-600 mb-6">Esta acción borrará el producto de la Base de Datos General permanentemente.</p><div className="flex gap-3"><button onClick={()=>setShowDeleteConfirm(null)} className="flex-1 py-2 border rounded font-bold text-gray-600">Cancelar</button><button onClick={()=>handleDeleteProduct(showDeleteConfirm.id, showDeleteConfirm.isGlobal)} className="flex-1 py-2 bg-red-600 text-white rounded font-bold shadow">ELIMINAR</button></div></div></div>}
                     {showHistoryDeleteConfirm && <div className="fixed inset-0 z-[70] bg-black/50 flex items-center justify-center p-6"><div className="bg-white rounded-xl p-6 max-w-xs text-center shadow-2xl border-t-4 border-red-500"><Icons.AlertTriangle size={40} className="mx-auto text-red-500 mb-4"/><h3 className="font-bold text-lg text-gray-800 mb-2">¿Borrar Historial?</h3><p className="text-sm text-gray-600 mb-6">Se eliminará este registro de compra.</p><div className="flex gap-3"><button onClick={()=>setShowHistoryDeleteConfirm(null)} className="flex-1 py-2 border rounded font-bold text-gray-600">Cancelar</button><button onClick={()=>handleDeleteHistory(showHistoryDeleteConfirm)} className="flex-1 py-2 bg-red-600 text-white rounded font-bold shadow">BORRAR</button></div></div></div>}
-                    {showSettings && <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4"><div className="bg-white rounded-xl w-full max-w-sm p-5 space-y-3"><div className="flex justify-between mb-4"><h3 className="font-bold">Ajustes</h3><button onClick={()=>setShowSettings(false)}><Icons.X size={20}/></button></div><div className="text-xs text-gray-500 bg-gray-50 p-2 rounded">ID: {user.uid}</div>{isAdmin && <button onClick={handleAdminImport} className="w-full py-3 bg-green-600 text-white rounded font-bold flex justify-center gap-2 mb-2"><Icons.Download size={18}/> Llenar Góndola (Sheet)</button>}{isAdmin && <button onClick={handleAdminCleanDuplicates} className="w-full py-3 border border-orange-200 text-orange-600 rounded font-bold flex justify-center gap-2 mb-2"><Icons.Broom size={18}/> Limpiar Duplicados</button>}<button onClick={handleResetPlan} className="w-full py-3 border border-orange-200 text-orange-600 rounded font-bold flex justify-center gap-2 mb-2"><Icons.List size={18}/> Reset Plan</button><button onClick={cleanDB} className="w-full py-3 border text-red-600 font-bold flex justify-center gap-2"><Icons.Trash size={18}/> Resetear Cuenta</button><button onClick={handleLogout} className="w-full py-3 border font-bold flex justify-center gap-2"><Icons.LogOut size={18}/> Salir</button></div></div>}
+                    {showSettings && <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4"><div className="bg-white rounded-xl w-full max-w-sm p-5 space-y-3"><div className="flex justify-between mb-4"><h3 className="font-bold">Ajustes</h3><button onClick={()=>setShowSettings(false)}><Icons.X size={20}/></button></div><div className="text-xs text-gray-500 bg-gray-50 p-2 rounded">ID: {user.uid}</div>{isAdmin && <button onClick={handleAdminImport} className="w-full py-3 bg-green-600 text-white rounded font-bold flex justify-center gap-2 mb-2"><Icons.Download size={18}/> Llenar Góndola (Sheet)</button>}{isAdmin && <button onClick={handleAdminCleanDuplicates} className="w-full py-3 border border-orange-200 text-orange-600 rounded font-bold flex justify-center gap-2 mb-2"><Icons.Broom size={18}/> Limpiar Duplicados</button>}<button onClick={handleResetPlan} className="w-full py-3 border border-orange-200 text-orange-600 rounded font-bold flex justify-center gap-2 mb-2"><Icons.List size={18}/> Reset Plan</button><button onClick={cleanDB} className="w-full py-3 border text-red-600 font-bold flex justify-center gap-2"><Icons.Trash size={18}/> Resetear Cuenta</button><button onClick={resetHelp} className="w-full py-3 bg-blue-50 text-blue-700 font-bold rounded flex justify-center gap-2 mb-2">❓ Ver Ayuda / Tutorial</button><button onClick={handleLogout} className="w-full py-3 border font-bold flex justify-center gap-2"><Icons.LogOut size={18}/> Salir</button></div></div>}
                     {showInstallModal && <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-6 animate-fade-in" onClick={() => setShowInstallModal(false)}><div className="bg-white rounded-xl p-6 max-w-sm text-center shadow-2xl relative" onClick={e => e.stopPropagation()}><button onClick={() => setShowInstallModal(false)} className="absolute top-2 right-2 text-gray-400"><Icons.X size={20}/></button><h3 className="text-lg font-bold text-gray-800 mb-2">Instalar Nini App</h3><p className="text-sm text-gray-600 mb-4">Para instalar: menú del navegador > Agregar a inicio</p></div></div>}
                     {showExportModal && <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"><div className="bg-white rounded-xl shadow-xl w-full max-w-md flex flex-col max-h-[80vh]"><div className="p-4 border-b flex justify-between"><h3 className="font-bold">Copiar al Excel</h3><button onClick={() => setShowExportModal(false)}><Icons.X size={20}/></button></div><div className="p-4 flex-1 bg-gray-50"><textarea id="exportarea" readOnly value={exportContent} className="w-full h-32 p-2 text-xs border rounded mb-2" onClick={e => e.target.select()} /><button onClick={copyToClip} className="w-full py-2 bg-green-600 text-white font-bold rounded">COPIAR AHORA</button></div><div className="p-4 border-t"><button onClick={() => { setProducts(prev => prev.map(p => ({...p, actualQty:0}))); setShowExportModal(false); }} className="w-full py-2 text-blue-600 font-bold border border-blue-600 rounded">Limpiar Carrito</button></div></div></div>}
 
                     {/* 3. FOOTER (FIJO) */}
                     <div className="flex-none bg-blue-700 shadow-lg text-white z-50">
                         <div className="flex justify-around items-center h-16">
-                            <button onClick={() => { setView('list'); setViewTargetUid(user?.uid); }} className={`flex flex-col items-center justify-center w-full h-full ${view === 'list' && !isReadOnly ? 'text-white' : 'text-white/50'}`}><Icons.List size={24} strokeWidth={2.5} /><span className="text-[10px] font-bold mt-1">Lista</span></button>
-                            <button onClick={() => setView('shared')} className={`flex flex-col items-center justify-center w-full h-full ${view === 'shared' ? 'text-white' : 'text-white/50'}`}><Icons.User size={24} strokeWidth={2.5} /><span className="text-[10px] font-bold mt-1">Compartido</span></button>
-                            <button onClick={() => setView('history')} className={`flex flex-col items-center justify-center w-full h-full ${view === 'history' ? 'text-white' : 'text-white/50'}`}><Icons.PieChart size={24} strokeWidth={2.5} /><span className="text-[10px] font-bold mt-1">Historial</span></button>
+                            <button onClick={() => { changeView('list'); setViewTargetUid(user?.uid); }} className={`flex flex-col items-center justify-center w-full h-full ${view === 'list' && !isReadOnly ? 'text-white' : 'text-white/50'}`}><Icons.List size={24} strokeWidth={2.5} /><span className="text-[10px] font-bold mt-1">Lista</span></button>
+                            <button onClick={() => changeView('shared')} className={`flex flex-col items-center justify-center w-full h-full ${view === 'shared' ? 'text-white' : 'text-white/50'}`}><Icons.User size={24} strokeWidth={2.5} /><span className="text-[10px] font-bold mt-1">Compartido</span></button>
+                            <button onClick={() => changeView('history')} className={`flex flex-col items-center justify-center w-full h-full ${view === 'history' ? 'text-white' : 'text-white/50'}`}><Icons.PieChart size={24} strokeWidth={2.5} /><span className="text-[10px] font-bold mt-1">Historial</span></button>
                         </div>
                     </div>
 
