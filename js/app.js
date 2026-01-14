@@ -149,7 +149,7 @@
                 <div className="p-4 space-y-6 pb-24">
                      <div className="flex items-center gap-2 mb-2">
                         <h2 className="font-bold text-lg text-gray-700">Historial de Compras</h2>
-                        <button onClick={()=>setShowHelp(true)} className="text-gray-400 hover:text-blue-500"><Icons.Help size={18}/></button>
+                        <button onClick={()=>setShowHelp(true)} className="text-red-500 hover:text-red-700"><Icons.Help size={27}/></button>
                     </div>
 
                     {showHelp && <TutorialModal 
@@ -495,7 +495,7 @@
                             <HistoryView history={history} onDelete={(id) => setShowHistoryDeleteConfirm(id)} onUpdateTotal={handleHistoryUpdate} />
                         )}
 
-                        <footer className="app-footer">
+                        <footer className="app-footer" style={{textAlign: 'center', width: '100%'}}>
                              by MöLDEA.STUDIO
                         </footer>
                     </div>
