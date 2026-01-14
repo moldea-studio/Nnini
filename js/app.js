@@ -1,5 +1,4 @@
-    <script type="text/babel">
-        const { useState, useEffect, useMemo } = React;
+const { useState, useEffect, useMemo } = React;
 
         // --- CONFIG ---
         const firebaseConfig = {
@@ -544,4 +543,5 @@
 
         const root = ReactDOM.createRoot(document.getElementById('root'));
         root.render(<ErrorBoundary><App /></ErrorBoundary>);
-    </script>
+        
+   
