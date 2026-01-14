@@ -1,4 +1,6 @@
-const { useState, useEffect, useMemo } = React;
+/* @babel */
+
+        const { useState, useEffect, useMemo } = React;
 
         // --- CONFIG ---
         const firebaseConfig = {
