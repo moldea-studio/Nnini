@@ -452,7 +452,7 @@
                     </div>
 
                     {/* SCROLLABLE LIST */}
-                    <div className="flex-1 overflow-y-auto pb-20 bg-white overscroll-contain">
+                    <div className="flex-1 overflow-y-auto pb-24 bg-white overscroll-contain">
                         {view === 'list' ? (
                             <div className="pb-4 pt-2">
                                 {filtered.map(p => (
@@ -530,7 +530,7 @@
                     {showExportModal && <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"><div className="bg-white rounded-xl shadow-xl w-full max-w-md flex flex-col max-h-[80vh]"><div className="p-4 border-b flex justify-between"><h3 className="font-bold">Copiar al Excel</h3><button onClick={() => setShowExportModal(false)}><Icons.X size={20}/></button></div><div className="p-4 flex-1 bg-gray-50"><textarea id="exportarea" readOnly value={exportContent} className="w-full h-32 p-2 text-xs border rounded mb-2" onClick={e => e.target.select()} /><button onClick={copyToClip} className="w-full py-2 bg-green-600 text-white font-bold rounded">COPIAR AHORA</button></div><div className="p-4 border-t"><button onClick={() => { setProducts(prev => prev.map(p => ({...p, actualQty:0}))); setShowExportModal(false); }} className="w-full py-2 text-blue-600 font-bold border border-blue-600 rounded">Limpiar Carrito</button></div></div></div>}
 
                     {/* 3. FOOTER (FIJO) */}
-                    <div className="flex-none bg-blue-700 shadow-lg text-white z-50">
+                        <div className="fixed bottom-0 left-0 right-0 bg-blue-700 shadow-lg text-white z-50">
                         <div className="flex justify-around items-center h-16">
                             <button onClick={() => { changeView('list'); setViewTargetUid(user?.uid); }} className={`flex flex-col items-center justify-center w-full h-full ${view === 'list' && !isReadOnly ? 'text-white' : 'text-white/50'}`}><Icons.List size={24} strokeWidth={2.5} /><span className="text-[10px] font-bold mt-1">Lista</span></button>
                             <button onClick={() => changeView('shared')} className={`flex flex-col items-center justify-center w-full h-full ${view === 'shared' ? 'text-white' : 'text-white/50'}`}><Icons.User size={24} strokeWidth={2.5} /><span className="text-[10px] font-bold mt-1">Compartido</span></button>
