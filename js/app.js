@@ -452,7 +452,7 @@
                     </div>
 
                     {/* SCROLLABLE LIST */}
-                    <div className="flex-1 overflow-y-auto pb-24 bg-white overscroll-contain">
+                    <div className="flex-1 overflow-y-auto pb-24 pt-[220px] bg-white overscroll-contain">
                         {view === 'list' ? (
                             <div className="pb-4 pt-2">
                                 {filtered.map(p => (
