@@ -402,8 +402,8 @@
             const totalCart = productsWithCart.reduce((a,b)=>a+(b.price*(b.actualQty||0)),0);
 
             return (
-                <div className="flex flex-col h-full bg-gray-50 font-sans overflow-hidden">
-                    <div className="flex-none bg-white shadow-md z-50">
+                <div className="flex flex-col h-full bg-gray-50 font-sans">
+                    <div className="fixed top-0 left-0 right-0 bg-white shadow-md z-50">
                         <div className="flex justify-between items-center px-4 py-2 border-b">
                             <div className="h-14 w-40 overflow-hidden flex items-center -ml-3"><img src="https://i.imgur.com/23tlEnQ.jpeg" className="h-full w-full object-contain scale-[1.8]" /></div>
                             <div className="flex flex-col items-center justify-center">
@@ -452,7 +452,7 @@
                     </div>
 
                     {/* SCROLLABLE LIST */}
-                    <div className="flex-1 overflow-y-auto pb-24 pt-[220px] bg-white overscroll-contain">
+                    <div className="flex-1 overflow-y-auto pb-24 pt-[290px] bg-white overscroll-contain">
                         {view === 'list' ? (
                             <div className="pb-4 pt-2">
                                 {filtered.map(p => (
